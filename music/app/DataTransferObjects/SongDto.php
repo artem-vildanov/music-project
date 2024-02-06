@@ -2,15 +2,11 @@
 
 namespace App\DataTransferObjects;
 
-class ArtistDto
+class SongDto
 {
     public int $id;
     public string $name;
     public string $photoPath;
+    public string $musicPath;
     public int $likes;
-    public array $albums;
-    public GenreDto $genre;
-
-    public int $userId;
-
 }

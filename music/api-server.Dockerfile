@@ -15,6 +15,9 @@ xdebug.mode = debug\n\
 xdebug.client_host = host.docker.internal\n\
 xdebug.client_port = 9003\n" > /usr/local/etc/php/conf.d/xdebug.ini
 
+RUN printf "upload_max_filesize = 100M\n\
+post_max_size = 100M\n" > /usr/local/etc/php/conf.d/php.ini
+
 RUN mkdir -p /var/www/api-server/storage/framework \
     && mkdir -p /var/www/api-server/storage/framework/sessions \
     && mkdir -p /var/www/api-server/storage/framework/views \

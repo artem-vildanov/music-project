@@ -24,14 +24,21 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/greet', \App\Http\Controllers\IndexController::class);
 
-Route::group(['prefix' => 'album'], function () {
+Route::group(['prefix' => 'album', 'middleware' => 'jwt.auth'], function () {
     Route::get('/{id}', [AlbumController::class, 'show']);
-
 });
 
-Route::group(['prefix' => 'artist'], function () {
+Route::group(['prefix' => 'artist', 'middleware' => 'jwt.auth'], function () {
     Route::get('/{id}', [ArtistController::class, 'show']);
+    Route::post('/create', [ArtistController::class, 'create']);
+    Route::group(['middleware' => 'forArtistPermitted'], function () {
+        Route::post('/test', [ArtistController::class, 'test']);
+        Route::post('/createAlbum', [AlbumController::class, 'create']);
+    });
 });
+
+
+
 
 Route::group(['prefix' => 'users'], function () {
     Route::post('/signup', [UserController::class, 'signup']);

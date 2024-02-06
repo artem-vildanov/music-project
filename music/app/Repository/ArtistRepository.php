@@ -38,6 +38,17 @@ class ArtistRepository implements ArtistRepositoryInterface
     {
         // TODO: Implement getAllByGenre() method.
     }
+
+    public function create(ArtistDto $artistDto) {
+        return DB::table('artists')->insertGetId([
+            'name' => $artistDto->name,
+            'photo_path' => $artistDto->photoPath,
+            'likes' => $artistDto->likes,
+            'user_id' => $artistDto->userId,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
 }
 
 

@@ -21,33 +21,21 @@ class UserController extends Controller
     public function signup(SignupRequest $request) {
         $data = $request->validated();
 
-        // $data['password'] = Hash::make($data['password']);
-
         $signupDto = new SignupDto();
         $signupDto->name = $data['name'];
         $signupDto->email = $data['email'];
         $signupDto->role = 'base_user';
         $signupDto->password = Hash::make($data['password']);
 
-//        $user = User::where('email', $data['email']) -> first();
-//        if ($user)
-//            return response(['message' => 'User with this email already exists'], 409);
-
-        // $user = User::create($data);
-
-        if ($this->userRepository->getByEmail($signupDto->email)) {
+        if ($this->userRepository->getByEmail($data['email']))
             return response(['message' => 'User with this email already exists'], 409);
-        }
 
+
+        // TODO в каком формате передавать данные в create()? signupDto или data?
         $userId = $this->userRepository->create($signupDto);
 
-        $token = auth()->tokenById($userId);
-
-        return response(['access_token' => $token]);
+        return response([
+            'access_token' => auth()->tokenById($userId)
+        ]);
     }
-
-    public function becameArtist() {
-
-    }
-
 }

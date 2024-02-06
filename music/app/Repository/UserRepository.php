@@ -7,6 +7,7 @@ use App\DataTransferObjects\AlbumDto;
 use App\DataTransferObjects\ArtistDto;
 use App\DataTransferObjects\SignupDto;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserRepository implements UserRepositoryInterface
 {
@@ -28,9 +29,9 @@ class UserRepository implements UserRepositoryInterface
         ]);
     }
 
-    public function getByEmail($email) {
-        $user = DB::table('users')->where('email', $email)->first();
-        return $user;
+    public function getByEmail($email)
+    {
+        return DB::table('users')->where('email', $email)->first();
     }
 
     public function delete(SignupDto $signupDto)
@@ -41,6 +42,11 @@ class UserRepository implements UserRepositoryInterface
     public function update(SignupDto $signupDto)
     {
         // TODO: Implement update() method.
+    }
+
+    public function roleArtist($userId): int
+    {
+        return DB::table('users')->where('id', $userId)->update(['role' => 'artist']);
     }
 }
 
