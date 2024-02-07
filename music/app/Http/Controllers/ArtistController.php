@@ -31,6 +31,7 @@ class ArtistController extends Controller
         return response()->json($artist);
     }
 
+    // only for base_user role
     public function create(CreateArtistRequest $request)
     {
         $data = $request->validated();
@@ -38,7 +39,7 @@ class ArtistController extends Controller
         $artistDto = new ArtistDto();
         $artistDto->name = $data['name'];
         $artistDto->likes = 0;
-        $artistDto->photoPath = $request->file('photo')->store('artists_photos', 's3');
+        $artistDto->photo = $data['photo'];
         $artistDto->userId = auth()->id();
 
         $artistDto->id = $this->artistRepository->create($artistDto);

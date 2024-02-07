@@ -6,6 +6,8 @@ use App\Repository\AlbumRepository;
 use App\Repository\AlbumRepositoryInterface;
 use App\Repository\ArtistRepository;
 use App\Repository\ArtistRepositoryInterface;
+use App\Repository\SongRepository;
+use App\Repository\SongRepositoryInterface;
 use App\Repository\UserRepository;
 use App\Repository\UserRepositoryInterface;
 use Illuminate\Support\ServiceProvider;
@@ -20,6 +22,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(AlbumRepositoryInterface::class, AlbumRepository::class);
         $this->app->bind(ArtistRepositoryInterface::class, ArtistRepository::class);
         $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(SongRepositoryInterface::class, SongRepository::class);
     }
 
     /**

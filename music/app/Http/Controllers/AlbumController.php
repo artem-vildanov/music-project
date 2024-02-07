@@ -6,15 +6,18 @@ use App\DataTransferObjects\AlbumDto;
 use App\DataTransferObjects\SongDto;
 use App\Http\Requests\Album\CreateAlbumRequest;
 use App\Repository\AlbumRepositoryInterface;
-use Illuminate\Http\Request;
+use App\Repository\ArtistRepositoryInterface;
 
 class AlbumController extends Controller
 {
     private AlbumRepositoryInterface $albumRepository;
+    private ArtistRepositoryInterface $artistRepository;
 
-    public function __construct(AlbumRepositoryInterface $albumRepository)
-    {
+    public function __construct(AlbumRepositoryInterface $albumRepository,
+                                ArtistRepositoryInterface $artistRepository,
+    ) {
         $this->albumRepository = $albumRepository;
+        $this->artistRepository = $artistRepository;
     }
 
     public function show($id) {
@@ -28,25 +31,32 @@ class AlbumController extends Controller
     {
         $data = $request->validated();
 
-        //dd($data['songs']);
-
-
-
         $albumDto = new AlbumDto();
         $albumDto->name = $data['name'];
-        $albumDto->photoPath = $data['photo']->store('albums_photos', 's3');
+        $albumDto->likes = 0;
+        $albumDto->photo = $data['photo'];
+
+        $artist = $this->artistRepository->getByUserId(auth()->id());
+
+        if ($artist)
+            $albumDto->artistId = $artist->id;
+        else
+            return response()->json([
+                'error' => 'You are not permitted to access this resource.',
+            ], 403);
+
         foreach ($data['songs'] as $songData) {
             $songDto = new SongDto();
-
-            // dd($songData['music']);
-
             $songDto->name = $songData['name'];
-            $songDto->musicPath = $songData['music']->store('songs', 's3');
-
+            $songDto->likes = 0;
+            $songDto->music = $songData['music'];
             $albumDto->songs[] = $songDto;
         }
 
-        return response()->json($albumDto);
+        $this->albumRepository->create($albumDto);
+
+
+        return response()->json($createdAlbumId);
     }
 
     public function delete() {

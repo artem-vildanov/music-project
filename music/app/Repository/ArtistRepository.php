@@ -3,43 +3,62 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\AlbumDto;
 use App\DataTransferObjects\ArtistDto;
 use Illuminate\Support\Facades\DB;
 
 class ArtistRepository implements ArtistRepositoryInterface
 {
 
-    public function getById($id)
+    public function getById($albumId): ArtistDto|null
     {
-        $artist = DB::table('artists')->where('id', $id)->first();
+        $artist = DB::table('artists')->where('id', $albumId)->first();
 
         if (!$artist)
             return null;
-
-        $albums = DB::table('albums')->where('artist_id', $id)->get()->all();
 
         $artistDto = new ArtistDto();
         $artistDto->id = $artist->id;
         $artistDto->name = $artist->name;
         $artistDto->photoPath = $artist->photo_path;
         $artistDto->likes = $artist->likes;
-        $artistDto->albums = $albums;
 
         return $artistDto;
     }
 
-    public function getAllByUser($userId)
+    public function getByUserId($userId): ArtistDto|null
+    {
+        $artist = DB::table('artists')->where('user_id', $userId)->first();
+
+        if (!$artist)
+            return null;
+
+        $artistDto = new ArtistDto();
+        $artistDto->id = $artist->id;
+        $artistDto->name = $artist->name;
+        $artistDto->photoPath = $artist->photo_path;
+        $artistDto->likes = $artist->likes;
+
+        return $artistDto;
+    }
+
+    public function getUserFavourites($userId): array
     {
         // TODO: Implement getAllByUser() method.
+        return [];
     }
 
-    public function getAllByGenre($genreId)
+    public function getAllByGenre($genreId): array
     {
         // TODO: Implement getAllByGenre() method.
+        return [];
     }
 
-    public function create(ArtistDto $artistDto) {
+    public function create(ArtistDto $artistDto): int|false {
+
+        $artistDto->photoPath = $artistDto->photo->store('artists_photos', 's3');
+        if (!$artistDto->photoPath)
+            return false;
+
         return DB::table('artists')->insertGetId([
             'name' => $artistDto->name,
             'photo_path' => $artistDto->photoPath,
