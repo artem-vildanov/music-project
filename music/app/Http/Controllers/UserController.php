@@ -2,39 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\SignupDto;
-use App\Http\Requests\User\SignupRequest;
-use App\Models\User;
+use App\DataTransferObjects\UserDto;
+use App\Http\Requests\User\CreateUserRequest;
 use App\Repository\UserRepositoryInterface;
-use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
+    public function __construct(
+        private readonly UserRepositoryInterface $userRepository
+    ) {}
 
-    private UserRepositoryInterface $userRepository;
+    public function signup(CreateUserRequest $request): JsonResponse
+    {
+        $data = $request->body();
 
-    public function __construct(UserRepositoryInterface $userRepository) {
-        $this->userRepository = $userRepository;
-    }
+        // TODO email check middleware
+        if ($this->userRepository->getByEmail($data->email))
+            return response()->json([
+                'message' => 'User with this email already exists'
+            ], 409);
+        // TODO email check middleware
 
-    public function signup(SignupRequest $request) {
-        $data = $request->validated();
+        $userId = $this->userRepository->create(
+            $data->name,
+            Hash::make($data->password),
+            $data->email,
+            'base_user',
+        );
 
-        $signupDto = new SignupDto();
-        $signupDto->name = $data['name'];
-        $signupDto->email = $data['email'];
-        $signupDto->role = 'base_user';
-        $signupDto->password = Hash::make($data['password']);
-
-        if ($this->userRepository->getByEmail($data['email']))
-            return response(['message' => 'User with this email already exists'], 409);
-
-
-        // TODO в каком формате передавать данные в create()? signupDto или data?
-        $userId = $this->userRepository->create($signupDto);
-
-        return response([
+        return response()->json([
             'access_token' => auth()->tokenById($userId)
         ]);
     }

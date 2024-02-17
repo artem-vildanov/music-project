@@ -2,55 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\ArtistDto;
 use App\Http\Requests\Artist\CreateArtistRequest;
+use App\Mappers\AlbumMapper;
+use App\Mappers\ArtistMapper;
+use App\Repository\AlbumRepositoryInterface;
 use App\Repository\ArtistRepositoryInterface;
-use App\Repository\UserRepositoryInterface;
-use Aws\Credentials\Credentials;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\Storage;
-use Aws\S3\S3Client;
+use App\Services\ArtistService;
+use Illuminate\Http\JsonResponse;
 
 class ArtistController extends Controller
 {
-    private ArtistRepositoryInterface $artistRepository;
-    private UserRepositoryInterface $userRepository;
-
     public function __construct(
-        ArtistRepositoryInterface $artistRepository,
-        UserRepositoryInterface $userRepository
-    ) {
-        $this->artistRepository = $artistRepository;
-        $this->userRepository = $userRepository;
-    }
+        private readonly ArtistService $artistService,
+        private readonly ArtistMapper $artistMapper,
+        private readonly AlbumMapper $albumMapper,
+        private readonly ArtistRepositoryInterface $artistRepository,
+        private readonly AlbumRepositoryInterface $albumRepository,
+    ) {}
 
-    public function show($id)
+    public function show(int $artistId): JsonResponse
     {
-        $artist = $this->artistRepository->getById($id);
-        return response()->json($artist);
-    }
+        $artist = $this->artistRepository->getById($artistId);
+        $artistDto = $this->artistMapper->map($artist);
 
-    // only for base_user role
-    public function create(CreateArtistRequest $request)
-    {
-        $data = $request->validated();
-
-        $artistDto = new ArtistDto();
-        $artistDto->name = $data['name'];
-        $artistDto->likes = 0;
-        $artistDto->photo = $data['photo'];
-        $artistDto->userId = auth()->id();
-
-        $artistDto->id = $this->artistRepository->create($artistDto);
-        $this->userRepository->roleArtist($artistDto->userId);
+        $albums = $this->albumRepository->getAllByArtist($artistDto->id);
+        $artistDto->albums = $this->albumMapper->mapMultiple($albums);
 
         return response()->json($artistDto);
     }
 
-    public function test() {
+    // only for base_user role
+    public function create(CreateArtistRequest $request): JsonResponse
+    {
+        $data = $request->body();
+
+        $artistId = $this->artistService->saveArtist($data->name, $data->photo);
+
         return response()->json([
-            'status' => 'succeed'
+            'artistId' => $artistId,
+            'message' => 'new artist created successfully',
         ]);
     }
 }

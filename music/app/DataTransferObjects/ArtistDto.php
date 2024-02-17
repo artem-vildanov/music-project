@@ -8,13 +8,13 @@ class ArtistDto
 {
     public int $id;
     public string $name;
-
-    public UploadedFile $photo;
     public string $photoPath;
     public int $likes;
-    public array $albums;
-    public GenreDto $genre;
 
+    /**
+     * @var array<AlbumDto>
+     */
+    public array $albums;
     public int $userId;
 
 }

@@ -5,7 +5,8 @@ namespace App\Repository;
 
 use App\DataTransferObjects\AlbumDto;
 use App\DataTransferObjects\ArtistDto;
-use App\DataTransferObjects\SignupDto;
+use App\DataTransferObjects\UserDto;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 
@@ -17,36 +18,53 @@ class UserRepository implements UserRepositoryInterface
         // TODO: Implement getById() method.
     }
 
-    public function create(SignupDto $signupDto): int
+    public function create(string $name, string $password, string $email, string $role): int
     {
-        return DB::table('users')->insertGetId([
-            'name' => $signupDto->name,
-            'email' => $signupDto->email,
-            'password' => $signupDto->password,
-            'role' => $signupDto->role,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $user = new User;
+        $user->name = $name;
+        $user->password = $password;
+        $user->email = $email;
+        $user->role = $role;
+        $user->save();
+
+        return $user->id;
+
+//        return DB::table('users')->insertGetId([
+//            'name' => $name,
+//            'email' => $email,
+//            'password' => $password,
+//            'role' => $role,
+//            'created_at' => now(),
+//            'updated_at' => now(),
+//        ]);
     }
 
-    public function getByEmail($email)
+    public function getByEmail(string $email): User|null
     {
-        return DB::table('users')->where('email', $email)->first();
+        return User::query()->where('email', $email)->first();
+        // return DB::table('users')->where('email', $email)->first();
     }
 
-    public function delete(SignupDto $signupDto)
+    public function delete(int $userId): bool
     {
         // TODO: Implement delete() method.
     }
 
-    public function update(SignupDto $signupDto)
+    public function update(int $userId, string $name, string $email, string $role): bool
     {
-        // TODO: Implement update() method.
-    }
+        $user = User::query()->find($userId);
 
-    public function roleArtist($userId): int
-    {
-        return DB::table('users')->where('id', $userId)->update(['role' => 'artist']);
+        $user->name = $name;
+        $user->email = $email;
+        $user->role = $role;
+
+        return $user->save();
+
+//        return DB::table('users')->where('id', $userId)->update([
+//            'name' => $name ,
+//            'email' => $email,
+//            'role' => $role,
+//        ]);
     }
 }
 

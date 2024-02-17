@@ -2,24 +2,32 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\AlbumDto;
+use App\Models\Album;
+use PhpParser\Builder;
 
 interface AlbumRepositoryInterface {
-
-    public function getById($albumId): AlbumDto|null;
-
-    public function getAllByArtist($artistId);
-
-    public function getAllByUser($userId);
-
-    public function getAllByGenre($genreId);
+    /**
+     * @param int $albumId
+     * @return Album|null
+     */
+    public function getById(int $albumId): Album|null;
 
     /**
-     * save album entity in db
-     * save songs entities in db
-     * @return int album_id
+     * @param int $artistId
+     * @return array<Album>
      */
-    //TODO можно ли сохранять в одном методе репозитория сразу несколько сущностей? Музыка и альбомы
-    public function create(AlbumDto $albumDto): int|false;
+    public function getAllByArtist(int $artistId): array;
+
+    public function getAllByUser(int $userId);
+
+    public function getAllByGenre(int $genreId);
+
+    /**
+     * @param string $name
+     * @param string $photoPath
+     * @param int $artistId
+     * @return int
+     */
+    public function create(string $name, string $photoPath, int $artistId): int;
 
 }

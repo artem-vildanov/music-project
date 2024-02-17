@@ -1,14 +1,10 @@
 <?php
 
-namespace App\DataTransferObjects;
+namespace App\Http\RequestModels;
 
-class SignupDto
+class CreateUserModel
 {
     public string $name;
-
     public string $email;
-
     public string $password;
-
-    public string $role;
 }

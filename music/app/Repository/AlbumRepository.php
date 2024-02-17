@@ -3,93 +3,67 @@
 namespace App\Repository;
 
 use App\DataTransferObjects\AlbumDto;
+use App\Models\Album;
 use Illuminate\Support\Facades\DB;
+use PhpParser\Builder;
+
 
 class AlbumRepository implements AlbumRepositoryInterface
 {
 
-    public function getById($albumId): AlbumDto|null
+    public function getById(int $albumId): Album|null
     {
-        $album = DB::table('albums')->where('id', $albumId)->first();
+        return Album::query()->find($albumId);
 
-        if(!$album) {
-            return null;
-        }
-
-        $songs = DB::table('songs')->where('album_id', $albumId)->get()->all();
-
-        $albumDto = new AlbumDto();
-        $albumDto->id = $album->id;
-        $albumDto->name = $album->name;
-        $albumDto->songs = $songs;
-        $albumDto->artistId = $album->artist_id;
-        $albumDto->likes = $album->likes;
-        $albumDto->photoPath = $album->photo_path;
-
-        return $albumDto;
+        // return DB::table('albums')->where('id', $albumId)->first();
     }
 
-    public function getAllByArtist($artistId): array
+    public function getAllByArtist(int $artistId): array
     {
-        $albums = DB::table('albums')->where('artist_id', $artistId)->get()->all();
-
-        $albumsDtoCollection = [];
-
-        foreach ($albums as $album)
-        {
-            $albumDto = new AlbumDto();
-            $albumDto->id = $album->id;
-            $albumDto->name = $album->name;
-            $albumDto->photoPath = $album->photo_path;
-            $albumDto->likes = $album->likes;
-            $albumDto->artistId = $album->artist_id;
-
-            $albumsDtoCollection[] = $albumDto;
-        }
-
-        return $albumsDtoCollection;
+        return Album::query()->where('artist_id', $artistId)->get()->all();
+        //return DB::table('albums')->where('artist_id', $artistId)->get()->all();
     }
 
-    public function getAllByUser($userId)
+    public function getAllByUser(int $userId)
     {
         // TODO: Implement getAllByUser() method.
     }
 
-    public function getAllByGenre($genreId)
+    public function getAllByGenre(int $genreId)
     {
         // TODO: Implement getAllByGenre() method.
     }
 
-    public function create(AlbumDto $albumDto): false|int
+
+
+    public function create(string $name, string $photoPath, int $artistId): int
     {
-        $albumPhotoPath = $albumDto->photo->store('album_photos', 's3');
+        $album = new Album;
+        $album->name = $name;
+        $album->photo_path = $photoPath;
+        $album->artist_id = $artistId;
 
-        $albumId = DB::table('albums')->insertGetId([
-            'name' => $albumDto->name,
-            'photo_path' => $albumPhotoPath,
-            'likes' => $albumDto->likes,
-            'artist_id' =>  $albumDto->artistId,
-            'created_at' => now(),
-            'updated_at' => now()
-        ]);
+        $album->likes = 0;
+        $album->cdn_folder_id = uniqid(more_entropy: true);
+        $album->status = 'private';
+        $album->created_at = now();
+        $album->updated_at = now();
 
-        foreach ($albumDto->songs as $song)
-        {
-            $song->musicPath = $song->music->store('music_files', 's3');
-            if (!$song->musicPath)
-                return false;
+        $album->save();
 
-            DB::table('songs')->insert([
-                'name' => $song->name,
-                'likes' => $song->likes,
-                'photo_path' => $albumPhotoPath,
-                'music_path' => $song->musicPath,
-                'album_id' => $albumId,
-                'created_at' => now(),
-                'updated_at' => now()
-            ]);
-        }
+        return $album->id;
 
-        return $albumId;
+//        return DB::table('albums')->insertGetId([
+//            'name' => $name,
+//            'photo_path' => $photoPath,
+//            'likes' => 0,
+//            'artist_id' =>  $artistId,
+//
+//            'cdn_folder_id' => uniqid(more_entropy: true),
+//            'status' => 'private',
+//
+//            'created_at' => now(),
+//            'updated_at' => now()
+//        ]);
     }
 }

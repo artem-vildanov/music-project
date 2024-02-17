@@ -4,41 +4,23 @@
 namespace App\Repository;
 
 use App\DataTransferObjects\ArtistDto;
+use App\Mappers\ArtistMapper;
+use App\Models\Artist;
 use Illuminate\Support\Facades\DB;
 
 class ArtistRepository implements ArtistRepositoryInterface
 {
 
-    public function getById($albumId): ArtistDto|null
+    public function getById(int $artistId): Artist|null
     {
-        $artist = DB::table('artists')->where('id', $albumId)->first();
-
-        if (!$artist)
-            return null;
-
-        $artistDto = new ArtistDto();
-        $artistDto->id = $artist->id;
-        $artistDto->name = $artist->name;
-        $artistDto->photoPath = $artist->photo_path;
-        $artistDto->likes = $artist->likes;
-
-        return $artistDto;
+        return Artist::query()->find($artistId);
+        //return DB::table('artists')->where('id', $artistId)->first();
     }
 
-    public function getByUserId($userId): ArtistDto|null
+    public function getByUserId(int $userId): Artist|null
     {
-        $artist = DB::table('artists')->where('user_id', $userId)->first();
-
-        if (!$artist)
-            return null;
-
-        $artistDto = new ArtistDto();
-        $artistDto->id = $artist->id;
-        $artistDto->name = $artist->name;
-        $artistDto->photoPath = $artist->photo_path;
-        $artistDto->likes = $artist->likes;
-
-        return $artistDto;
+        return Artist::query()->where('user_id', $userId)->first();
+        //return DB::table('artists')->where('user_id', $userId)->first();
     }
 
     public function getUserFavourites($userId): array
@@ -53,20 +35,29 @@ class ArtistRepository implements ArtistRepositoryInterface
         return [];
     }
 
-    public function create(ArtistDto $artistDto): int|false {
+    public function create(string $name, string $photoPath, int $userId): int
+    {
+        $artist = new Artist;
 
-        $artistDto->photoPath = $artistDto->photo->store('artists_photos', 's3');
-        if (!$artistDto->photoPath)
-            return false;
+        $artist->name = $name;
+        $artist->photo_path = $photoPath;
+        $artist->user_id = $userId;
+        $artist->likes = 0;
+        $artist->created_at = now();
+        $artist->updated_at = now();
 
-        return DB::table('artists')->insertGetId([
-            'name' => $artistDto->name,
-            'photo_path' => $artistDto->photoPath,
-            'likes' => $artistDto->likes,
-            'user_id' => $artistDto->userId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $artist->save();
+
+        return $artist->id;
+
+//        return DB::table('artists')->insertGetId([
+//            'name' => $name,
+//            'photo_path' => $photoPath,
+//            'likes' => 0,
+//            'user_id' => $userId,
+//            'created_at' => now(),
+//            'updated_at' => now(),
+//        ]);
     }
 }
 

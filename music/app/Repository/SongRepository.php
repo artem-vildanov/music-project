@@ -2,50 +2,50 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\SongDto;
+use App\Models\Song;
+use Illuminate\Support\Facades\DB;
 
 class SongRepository implements SongRepositoryInterface
 {
-    /**
-     * @param $songId
-     * @return SongDto|null
-     */
-    public function getById($songId): SongDto|null
+    public function getById($songId): Song|null
     {
-        // TODO: Implement getById() method.
+        return Song::query()->find($songId);
     }
 
-    public function createMultiple(array $songsDtoCollection): array|false
+    public function getAllByAlbum(int $albumId): array
     {
-        foreach ($songsDtoCollection as $songDto)
-        {
-
-        }
+        return Song::query()->where('album_id', $albumId)->get()->all();
+        // return DB::table('songs')->where('album_id', $albumId)->get()->all();
     }
 
-    /**
-     * @param SongDto $songDto
-     * @return int|false
-     */
-    public function create(SongDto $songDto): int|false
+    public function create(string $name, string $photoPath, string $musicPath, int $albumId): int
     {
-        // TODO: Implement create() method.
+        $song = new Song;
+        $song->name = $name;
+        $song->likes = 0;
+        $song->photo_path = $photoPath;
+        $song->music_path = $musicPath;
+        $song->album_id = $albumId;
+
+        $song->save();
+
+        return $song->id;
+
+//        return DB::table('songs')->insertGetId([
+//            'name' => $name,
+//            'likes' => 0,
+//            'photo_path' => $photoPath,
+//            'music_path' => $musicPath,
+//            'album_id' => $albumId,
+//        ]);
     }
 
-    /**
-     * @param SongDto $songDto
-     * @return bool
-     */
-    public function delete(SongDto $songDto): bool
+    public function delete(int $songId): bool
     {
         // TODO: Implement delete() method.
     }
 
-    /**
-     * @param SongDto $songDto
-     * @return bool
-     */
-    public function update(SongDto $songDto): bool
+    public function update(string $name, string $photoPath, string $musicPath, int $albumId): bool
     {
         // TODO: Implement update() method.
     }

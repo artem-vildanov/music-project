@@ -2,61 +2,53 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\SongDto;
 use App\Http\Requests\Album\CreateAlbumRequest;
+use App\Mappers\AlbumMapper;
+use App\Mappers\SongMapper;
 use App\Repository\AlbumRepositoryInterface;
-use App\Repository\ArtistRepositoryInterface;
+use App\Repository\SongRepositoryInterface;
+use App\Services\AlbumService;
+use Illuminate\Http\JsonResponse;
 
 class AlbumController extends Controller
 {
-    private AlbumRepositoryInterface $albumRepository;
-    private ArtistRepositoryInterface $artistRepository;
+    public function __construct(
+        private readonly AlbumRepositoryInterface $albumRepository,
+        private readonly SongRepositoryInterface $songRepository,
+        private readonly AlbumService $albumService,
+        private readonly AlbumMapper $albumMapper,
+        private readonly SongMapper $songMapper,
+    ) {}
 
-    public function __construct(AlbumRepositoryInterface $albumRepository,
-                                ArtistRepositoryInterface $artistRepository,
-    ) {
-        $this->albumRepository = $albumRepository;
-        $this->artistRepository = $artistRepository;
-    }
+    public function show(int $albumId): JsonResponse
+    {
+        $album = $this->albumRepository->getById($albumId);
+        // dd($album);
+        $albumDto = $this->albumMapper->map($album);
 
-    public function show($id) {
-        $album = $this->albumRepository->getById($id);
-        return response()->json($album);
+        $songs = $this->songRepository->getAllByAlbum($album->id);
+        $albumDto->songs = $this->songMapper->mapMultiple($songs);
+
+        return response()->json($albumDto);
     }
 
 
     // for artist role
-    public function create(CreateAlbumRequest $request)
+    public function create(CreateAlbumRequest $request): JsonResponse
     {
-        $data = $request->validated();
+        $data = $request->body();
 
-        $albumDto = new AlbumDto();
-        $albumDto->name = $data['name'];
-        $albumDto->likes = 0;
-        $albumDto->photo = $data['photo'];
+        $albumId = $this->albumService->saveAlbum($data->name, $data->photo);
 
-        $artist = $this->artistRepository->getByUserId(auth()->id());
-
-        if ($artist)
-            $albumDto->artistId = $artist->id;
-        else
+        if (!$albumId)
             return response()->json([
-                'error' => 'You are not permitted to access this resource.',
-            ], 403);
+                'message' => 'failed to create album',
+            ]);
 
-        foreach ($data['songs'] as $songData) {
-            $songDto = new SongDto();
-            $songDto->name = $songData['name'];
-            $songDto->likes = 0;
-            $songDto->music = $songData['music'];
-            $albumDto->songs[] = $songDto;
-        }
-
-        $this->albumRepository->create($albumDto);
-
-
-        return response()->json($createdAlbumId);
+        return response()->json([
+            'albumId' => $albumId,
+            'message' => 'album created successfully',
+        ]);
     }
 
     public function delete() {

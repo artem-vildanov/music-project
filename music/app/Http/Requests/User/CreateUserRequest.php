@@ -2,18 +2,11 @@
 
 namespace App\Http\Requests\User;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\RequestModels\CreateUserModel;
+use App\Http\Requests\BaseFormRequest;
 
-class SignupRequest extends FormRequest
+class CreateUserRequest extends BaseFormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -26,5 +19,15 @@ class SignupRequest extends FormRequest
             'email' => 'required|string',
             'password' => 'required|string'
         ];
+    }
+
+    public function body(): CreateUserModel
+    {
+        $model = new CreateUserModel();
+        $model->name = $this->string('name');
+        $model->email = $this->string('email');
+        $model->password = $this->string('password');
+
+        return $model;
     }
 }

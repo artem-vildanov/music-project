@@ -8,10 +8,13 @@ class AlbumDto
 {
     public int $id;
     public string $name;
-    public UploadedFile $photo;
     public string $photoPath;
 
     public int $likes;
     public int $artistId;
+
+    /**
+     * @var array<SongDto>
+     */
     public array $songs;
 }

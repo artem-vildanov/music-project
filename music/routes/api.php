@@ -3,7 +3,11 @@
 use App\Http\Controllers\AlbumController;
 use App\Http\Controllers\ArtistController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\SongController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\ForArtistPermitted;
+use App\Http\Middleware\ForBaseUserPermitted;
+use App\Http\Middleware\AlbumOwnershipVerification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,22 +29,31 @@ use Illuminate\Support\Facades\Route;
 Route::get('/greet', \App\Http\Controllers\IndexController::class);
 
 Route::group(['prefix' => 'album', 'middleware' => 'jwt.auth'], function () {
-    Route::get('/{id}', [AlbumController::class, 'show']);
-});
+    Route::get('/{albumId}', [AlbumController::class, 'show']);
+    Route::post('/createAlbum', [AlbumController::class, 'create'])->middleware(ForArtistPermitted::class);;
+    Route::group(['prefix' => '{albumId}'], function () {
+        Route::group(['prefix' => '{songId}'], function () {
+            Route::get('', [SongController::class, 'show']);
 
-Route::group(['prefix' => 'artist', 'middleware' => 'jwt.auth'], function () {
-    Route::get('/{id}', [ArtistController::class, 'show']);
-    Route::post('/create', [ArtistController::class, 'create']);
-    Route::group(['middleware' => 'forArtistPermitted'], function () {
-        Route::post('/test', [ArtistController::class, 'test']);
-        Route::post('/createAlbum', [AlbumController::class, 'create']);
+            // TODO implement method & create OwnershipMiddleware
+            Route::post('/updateSong', [SongController::class, 'update'])->middleware(ForArtistPermitted::class, AlbumOwnershipVerification::class);
+            Route::get('/deleteSong', [SongController::class, 'delete'])->middleware(ForArtistPermitted::class, AlbumOwnershipVerification::class);
+            // TODO implement method & create OwnershipMiddleware
+        });
+        Route::post('createSong', [SongController::class, 'create'])->middleware(ForArtistPermitted::class, AlbumOwnershipVerification::class );
+        Route::post('deleteAlbum', [AlbumController::class, 'delete'])->middleware(ForArtistPermitted::class, AlbumOwnershipVerification::class );
     });
 });
 
+Route::group(['prefix' => 'artist', 'middleware' => 'jwt.auth'], function () {
+    Route::get('/{artistId}', [ArtistController::class, 'show']);
+    Route::post('/createArtist', [ArtistController::class, 'create'])->middleware(ForBaseUserPermitted::class);
+//    Route::group(['middleware' => ForArtistPermitted::class], function () {
+//        Route::post('/createAlbum', [AlbumController::class, 'create']);
+//    });
+});
 
-
-
-Route::group(['prefix' => 'users'], function () {
+Route::group(['prefix' => 'user'], function () {
     Route::post('/signup', [UserController::class, 'signup']);
 });
 

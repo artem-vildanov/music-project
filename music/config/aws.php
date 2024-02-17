@@ -20,9 +20,8 @@ return [
         'key'    => env('AWS_ACCESS_KEY_ID', ''),
         'secret' => env('AWS_SECRET_ACCESS_KEY', ''),
     ],
-    'region' => 'us-west-2',
+    'region' => env('AWS_REGION', 'us-east-1'),
     'version' => 'latest',
-    'ua_append' => [
-        'L5MOD/' . AwsServiceProvider::VERSION,
-    ],
+    'endpoint' => env('AWS_ENDPOINT'),
+    'use_path_style_endpoint' => env('AWS_USE_PATH_STYLE_ENDPOINT', false)
 ];
