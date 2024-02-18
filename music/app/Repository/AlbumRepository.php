@@ -2,10 +2,8 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\AlbumDto;
 use App\Models\Album;
-use Illuminate\Support\Facades\DB;
-use PhpParser\Builder;
+use App\Repository\Interfaces\AlbumRepositoryInterface;
 
 
 class AlbumRepository implements AlbumRepositoryInterface
@@ -34,14 +32,17 @@ class AlbumRepository implements AlbumRepositoryInterface
         // TODO: Implement getAllByGenre() method.
     }
 
-
-
-    public function create(string $name, string $photoPath, int $artistId): int
-    {
+    public function create(
+        string $name,
+        string $photoPath,
+        int $artistId,
+        int $genreId
+    ): int {
         $album = new Album;
         $album->name = $name;
         $album->photo_path = $photoPath;
         $album->artist_id = $artistId;
+        $album->genre_id = $genreId;
 
         $album->likes = 0;
         $album->cdn_folder_id = uniqid(more_entropy: true);
@@ -52,18 +53,37 @@ class AlbumRepository implements AlbumRepositoryInterface
         $album->save();
 
         return $album->id;
+    }
 
-//        return DB::table('albums')->insertGetId([
-//            'name' => $name,
-//            'photo_path' => $photoPath,
-//            'likes' => 0,
-//            'artist_id' =>  $artistId,
-//
-//            'cdn_folder_id' => uniqid(more_entropy: true),
-//            'status' => 'private',
-//
-//            'created_at' => now(),
-//            'updated_at' => now()
-//        ]);
+    /**
+     * @param int $albumId
+     * @param string $name
+     * @param string $photoPath
+     * @param string $status
+     * @return bool
+     */
+    public function update(
+        int $albumId,
+        string $name,
+        string $photoPath,
+        string $status,
+        int $genreId
+    ): bool {
+        $album = Album::query()->find($albumId);
+        $album->name = $name;
+        $album->photo_path = $photoPath;
+        $album->status = $status;
+        $album->genre_id = $genreId;
+        return $album->save();
+    }
+
+    /**
+     * @param int $albumId
+     * @return bool
+     */
+    public function delete(int $albumId): bool
+    {
+        $album = Album::query()->find($albumId);
+        return $album->delete();
     }
 }

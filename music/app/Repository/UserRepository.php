@@ -3,12 +3,8 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\ArtistDto;
-use App\DataTransferObjects\UserDto;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
+use App\Repository\Interfaces\UserRepositoryInterface;
 
 class UserRepository implements UserRepositoryInterface
 {

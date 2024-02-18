@@ -3,11 +3,11 @@
 namespace App\Repository;
 
 use App\Models\Song;
-use Illuminate\Support\Facades\DB;
+use App\Repository\Interfaces\SongRepositoryInterface;
 
 class SongRepository implements SongRepositoryInterface
 {
-    public function getById($songId): Song|null
+    public function getById(int $songId): Song|null
     {
         return Song::query()->find($songId);
     }
@@ -42,11 +42,16 @@ class SongRepository implements SongRepositoryInterface
 
     public function delete(int $songId): bool
     {
-        // TODO: Implement delete() method.
+        $song = Song::query()->find($songId);
+        return $song->delete();
     }
 
-    public function update(string $name, string $photoPath, string $musicPath, int $albumId): bool
+    public function update(int $songId, string $name, string $musicPath, string $photoPath): bool
     {
-        // TODO: Implement update() method.
+        $song = Song::query()->find($songId);
+        $song->name = $name;
+        $song->music_path = $musicPath;
+        $song->photo_path = $photoPath;
+        return $song->save();
     }
 }

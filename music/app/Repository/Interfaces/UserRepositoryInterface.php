@@ -1,8 +1,6 @@
 <?php
 
-namespace App\Repository;
-
-use App\DataTransferObjects\UserDto;
+namespace App\Repository\Interfaces;
 
 interface UserRepositoryInterface {
 

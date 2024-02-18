@@ -3,24 +3,25 @@
 namespace App\Http\Requests\Song;
 
 use App\Http\RequestModels\Song\CreateSongModel;
+use App\Http\RequestModels\Song\UpdateSongModel;
 use App\Http\Requests\BaseFormRequest;
 
-class CreateSongRequest extends BaseFormRequest
+class UpdateSongRequest extends BaseFormRequest
 {
     public function rules(): array
     {
         return [
-            'name' => 'required|string',
-            'music' => 'required|mimes:mp3',
+            'name' => 'nullable|string',
+            'music' => 'nullable|mimes:mp3',
         ];
     }
 
     /**
      * @return mixed
      */
-    public function body(): CreateSongModel
+    public function body(): UpdateSongModel
     {
-        $model = new CreateSongModel();
+        $model = new UpdateSongModel();
         $model->name = $this->string('name');
         $model->music = $this->file('music');
 

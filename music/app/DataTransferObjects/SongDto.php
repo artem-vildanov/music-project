@@ -11,4 +11,6 @@ class SongDto
     public string $photoPath;
     public string $musicPath;
     public int $likes;
+    public int $artistId;
+    public string $artistName;
 }

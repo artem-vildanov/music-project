@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\RequestModels;
+namespace App\Http\RequestModels\Artist;
 
 use Illuminate\Http\UploadedFile;
 
-class CreateAlbumModel
+class CreateArtistModel
 {
     public string $name;
     public UploadedFile $photo;

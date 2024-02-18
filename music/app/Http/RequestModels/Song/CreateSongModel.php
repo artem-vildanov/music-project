@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\RequestModels;
+namespace App\Http\RequestModels\Song;
 
 use Illuminate\Http\UploadedFile;
 

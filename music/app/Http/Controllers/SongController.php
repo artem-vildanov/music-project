@@ -3,10 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Song\CreateSongRequest;
+use App\Http\Requests\Song\UpdateSongRequest;
 use App\Mappers\SongMapper;
-use App\Repository\AlbumRepositoryInterface;
-use App\Repository\ArtistRepositoryInterface;
-use App\Repository\SongRepositoryInterface;
+use App\Repository\Interfaces\ArtistRepositoryInterface;
+use App\Repository\Interfaces\SongRepositoryInterface;
 use App\Services\SongService;
 use Illuminate\Http\JsonResponse;
 
@@ -15,9 +15,8 @@ class SongController extends Controller
 
 
     public function __construct(
-        private readonly AlbumRepositoryInterface $albumRepository,
-        private readonly ArtistRepositoryInterface $artistRepository,
         private readonly SongRepositoryInterface $songRepository,
+        private readonly ArtistRepositoryInterface $artistRepository,
         private readonly SongService $songService,
         private readonly SongMapper $songMapper,
     ) {
@@ -28,6 +27,9 @@ class SongController extends Controller
         $song = $this->songRepository->getById($songId);
         $songDto = $this->songMapper->map($song);
 
+        $artist = $this->artistRepository->getByUserId(auth()->id());
+        $songDto->artistName = $artist->name;
+
         return response()->json($songDto);
     }
 
@@ -35,22 +37,43 @@ class SongController extends Controller
     {
         $data = $request->body();
 
-
-        // TODO authorship verification
-//        $artistId = $this->albumRepository->getById($data['albumId'])->artist_id;
-//        $userId = $this->artistRepository->getById($artistId)->user_id;
-//
-//        if ($userId !== auth()->id())
-//            return response()->json([
-//                'error' => 'You are not permitted to access this resource.',
-//            ], 403);
-        // TODO authorship verification
-
         $songId = $this->songService->saveSong($data->name, $data->music, $albumId);
 
         return response()->json([
             'songId' => $songId,
             'message' => 'song created successfully'
         ]);
+    }
+
+    public function update(int $albumId, int $songId, UpdateSongRequest $request): JsonResponse
+    {
+        $data = $request->body();
+
+        if($this->songService->updateSong($songId, $data->name, $data->music)) {
+            return response()->json([
+                'songId' => $songId,
+                'message' => 'song updated successfully'
+            ]);
+        } else {
+            return response()->json([
+                'songId' => $songId,
+                'message' => 'failed to update song'
+            ], 400);
+        }
+    }
+
+    public function delete(int $albumId, int $songId): JsonResponse
+    {
+        if ($this->songService->deleteSong($songId)) {
+            return response()->json([
+                'songId' => $songId,
+                'message' => 'song deleted successfully'
+            ]);
+        } else {
+            return response()->json([
+                'songId' => $songId,
+                'message' => 'failed to delete song'
+            ], 400);
+        }
     }
 }

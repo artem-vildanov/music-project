@@ -1,8 +1,7 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Interfaces;
 
-use App\DataTransferObjects\ArtistDto;
 use App\Models\Artist;
 
 interface ArtistRepositoryInterface

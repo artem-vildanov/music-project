@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Artist\CreateArtistRequest;
 use App\Mappers\AlbumMapper;
 use App\Mappers\ArtistMapper;
-use App\Repository\AlbumRepositoryInterface;
-use App\Repository\ArtistRepositoryInterface;
+use App\Repository\Interfaces\AlbumRepositoryInterface;
+use App\Repository\Interfaces\ArtistRepositoryInterface;
 use App\Services\ArtistService;
 use Illuminate\Http\JsonResponse;
 

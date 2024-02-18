@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Interfaces;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\SongDto;
 use App\Models\Song;
 
 interface SongRepositoryInterface {
@@ -23,6 +21,6 @@ interface SongRepositoryInterface {
 
     public function delete(int $songId): bool;
 
-    public function update(string $name, string $photoPath, string $musicPath, int $albumId): bool;
+    public function update(int $songId, string $name, string $musicPath, string $photoPath): bool;
 
 }

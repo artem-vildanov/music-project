@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\User;
 
-use App\Http\RequestModels\CreateUserModel;
+use App\Http\RequestModels\User\CreateUserModel;
 use App\Http\Requests\BaseFormRequest;
 
 class CreateUserRequest extends BaseFormRequest

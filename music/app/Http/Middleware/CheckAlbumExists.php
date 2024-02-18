@@ -3,16 +3,14 @@
 namespace App\Http\Middleware;
 
 use App\Repository\Interfaces\AlbumRepositoryInterface;
-use App\Repository\Interfaces\ArtistRepositoryInterface;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AlbumOwnershipVerification
+class CheckAlbumExists
 {
     public function __construct(
-        private readonly AlbumRepositoryInterface $albumRepository,
-        private readonly ArtistRepositoryInterface $artistRepository,
+        private readonly AlbumRepositoryInterface $albumRepository
     ) {}
 
     /**
@@ -24,16 +22,14 @@ class AlbumOwnershipVerification
     public function handle(Request $request, Closure $next): Response
     {
         $albumId = $request->route('albumId');
+
         $album = $this->albumRepository->getById($albumId);
 
-        $userId = $this->artistRepository->getById($album->artist_id)->user_id;
-
-        if ($userId !== auth()->id()) {
+        if (!$album) {
             return response()->json([
-                'error' => 'You are not permitted to access this resource.',
-            ], 403);
+                'message' => 'album with such id does not exist'
+            ], 400);
         }
-
 
         return $next($request);
     }

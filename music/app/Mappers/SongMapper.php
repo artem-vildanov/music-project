@@ -19,6 +19,7 @@ class SongMapper
         $songDto->likes = $song->likes;
         $songDto->photoPath = $song->photo_path;
         $songDto->musicPath = $song->music_path;
+        $songDto->artistId = $song->artist_id;
 
         return $songDto;
     }
@@ -34,13 +35,7 @@ class SongMapper
 
         foreach($songs as $song)
         {
-            $songDto = new SongDto();
-            $songDto->id = $song->id;
-            $songDto->name = $song->name;
-            $songDto->likes = $song->likes;
-            $songDto->photoPath = $song->photo_path;
-            $songDto->musicPath = $song->music_path;
-
+            $songDto = $this->map($song);
             $songDtoCollection[] = $songDto;
         }
 

@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Album\CreateAlbumRequest;
+use App\Http\Requests\Album\UpdateAlbumRequest;
 use App\Mappers\AlbumMapper;
 use App\Mappers\SongMapper;
-use App\Repository\AlbumRepositoryInterface;
-use App\Repository\SongRepositoryInterface;
+use App\Repository\Interfaces\AlbumRepositoryInterface;
+use App\Repository\Interfaces\ArtistRepositoryInterface;
+use App\Repository\Interfaces\GenreRepositoryInterface;
+use App\Repository\Interfaces\SongRepositoryInterface;
 use App\Services\AlbumService;
 use Illuminate\Http\JsonResponse;
 
@@ -15,6 +18,8 @@ class AlbumController extends Controller
     public function __construct(
         private readonly AlbumRepositoryInterface $albumRepository,
         private readonly SongRepositoryInterface $songRepository,
+        private readonly ArtistRepositoryInterface $artistRepository,
+        private readonly GenreRepositoryInterface $genreRepository,
         private readonly AlbumService $albumService,
         private readonly AlbumMapper $albumMapper,
         private readonly SongMapper $songMapper,
@@ -23,11 +28,19 @@ class AlbumController extends Controller
     public function show(int $albumId): JsonResponse
     {
         $album = $this->albumRepository->getById($albumId);
-        // dd($album);
         $albumDto = $this->albumMapper->map($album);
+
+        $artist = $this->artistRepository->getById($album->artist_id);
+        $albumDto->artistName = $artist->name;
+
+        $genre = $this->genreRepository->getById($album->genre_id);
+        $albumDto->genreName = $genre->name;
 
         $songs = $this->songRepository->getAllByAlbum($album->id);
         $albumDto->songs = $this->songMapper->mapMultiple($songs);
+        foreach ($albumDto->songs as $song) {
+            $song->artistName = $artist->name;
+        }
 
         return response()->json($albumDto);
     }
@@ -38,24 +51,59 @@ class AlbumController extends Controller
     {
         $data = $request->body();
 
-        $albumId = $this->albumService->saveAlbum($data->name, $data->photo);
+        $albumId = $this->albumService->saveAlbum(
+            $data->name,
+            $data->photo,
+            $data->genreId
+        );
 
-        if (!$albumId)
+        if ($albumId) {
+            return response()->json([
+                'albumId' => $albumId,
+                'message' => 'album created successfully',
+            ]);
+        } else {
             return response()->json([
                 'message' => 'failed to create album',
+            ], 400);
+        }
+    }
+
+    public function update(int $albumId, UpdateAlbumRequest $request): JsonResponse
+    {
+        $data = $request->body();
+
+        if ($this->albumService->updateAlbum(
+            $albumId,
+            $data->name,
+            $data->photo,
+            $data->status,
+            $data->genreId
+        )) {
+            return response()->json([
+                'albumId' => $albumId,
+                'message' => 'album updated successfully'
             ]);
-
-        return response()->json([
-            'albumId' => $albumId,
-            'message' => 'album created successfully',
-        ]);
+        } else {
+            return response()->json([
+                'albumId' => $albumId,
+                'message' => 'failed to update album'
+            ], 400);
+        }
     }
 
-    public function delete() {
-
-    }
-
-    public function update() {
-
+    public function delete(int $albumId): JsonResponse
+    {
+        if ($this->albumService->deleteAlbum($albumId)) {
+            return response()->json([
+                'albumId' => $albumId,
+                'message' => 'album deleted successfully'
+            ]);
+        } else {
+            return response()->json([
+                'albumId' => $albumId,
+                'message' => 'failed to delete album'
+            ], 400);
+        }
     }
 }

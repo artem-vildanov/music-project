@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Artist;
 
-use App\Http\RequestModels\CreateArtistModel;
+use App\Http\RequestModels\Artist\CreateArtistModel;
 use App\Http\Requests\BaseFormRequest;
 
 class CreateArtistRequest extends BaseFormRequest

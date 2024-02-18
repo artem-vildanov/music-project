@@ -20,6 +20,7 @@ class AlbumMapper
         $albumDto->likes = $album->likes;
         $albumDto->photoPath = $album->photo_path;
         $albumDto->artistId = $album->artist_id;
+        $albumDto->genreId = $album->genre_id;
 
         return $albumDto;
     }
@@ -35,13 +36,7 @@ class AlbumMapper
 
         foreach ($albums as $album)
         {
-            $albumDto = new AlbumDto();
-            $albumDto->id = $album->id;
-            $albumDto->name = $album->name;
-            $albumDto->likes = $album->likes;
-            $albumDto->photoPath = $album->photo_path;
-            $albumDto->artistId = $album->artist_id;
-
+            $albumDto = $this->map($album);
             $albumDtoCollection[] = $albumDto;
         }
 

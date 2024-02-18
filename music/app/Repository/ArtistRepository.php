@@ -3,10 +3,8 @@
 
 namespace App\Repository;
 
-use App\DataTransferObjects\ArtistDto;
-use App\Mappers\ArtistMapper;
 use App\Models\Artist;
-use Illuminate\Support\Facades\DB;
+use App\Repository\Interfaces\ArtistRepositoryInterface;
 
 class ArtistRepository implements ArtistRepositoryInterface
 {

@@ -2,24 +2,21 @@
 
 namespace App\Services;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\ArtistDto;
-use App\Repository\AlbumRepositoryInterface;
-use App\Repository\ArtistRepositoryInterface;
-use App\Repository\UserRepositoryInterface;
+use App\Repository\Interfaces\ArtistRepositoryInterface;
+use App\Repository\Interfaces\UserRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 
 class ArtistService
 {
     public function __construct(
-        private readonly StorageService $storageService,
+        private readonly PhotoStorageService $storageService,
         private readonly ArtistRepositoryInterface $artistRepository,
         private readonly UserRepositoryInterface $userRepository,
     ) {}
 
     public function saveArtist(string $name, UploadedFile $photoFile): int|null
     {
-        $photoPath = $this->storageService->storeArtistPhoto($photoFile);
+        $photoPath = $this->storageService->saveArtistPhoto($photoFile);
 
         if (!$photoPath)
             return null;

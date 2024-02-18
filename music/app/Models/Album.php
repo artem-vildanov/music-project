@@ -29,6 +29,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Album wherePhotoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Album whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Album whereUpdatedAt($value)
+ * @property int $genre_id
+ * @method static \Illuminate\Database\Eloquent\Builder|Album whereGenreId($value)
  * @mixin \Eloquent
  */
 class Album extends Model

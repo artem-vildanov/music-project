@@ -27,6 +27,8 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Song whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Song wherePhotoPath($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Song whereUpdatedAt($value)
+ * @property int $artist_id
+ * @method static \Illuminate\Database\Eloquent\Builder|Song whereArtistId($value)
  * @mixin \Eloquent
  */
 class Song extends Model

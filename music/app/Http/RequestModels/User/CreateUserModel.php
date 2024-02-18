@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\RequestModels;
+namespace App\Http\RequestModels\User;
 
 class CreateUserModel
 {
