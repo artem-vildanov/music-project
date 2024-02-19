@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\AlbumDto;
+use App\DataTransferObjects\ArtistDto;
 use App\Http\Requests\Artist\CreateArtistRequest;
+use App\Http\Requests\Artist\UpdateArtistRequest;
 use App\Mappers\AlbumMapper;
 use App\Mappers\ArtistMapper;
 use App\Repository\Interfaces\AlbumRepositoryInterface;
@@ -14,8 +17,6 @@ class ArtistController extends Controller
 {
     public function __construct(
         private readonly ArtistService $artistService,
-        private readonly ArtistMapper $artistMapper,
-        private readonly AlbumMapper $albumMapper,
         private readonly ArtistRepositoryInterface $artistRepository,
         private readonly AlbumRepositoryInterface $albumRepository,
     ) {}
@@ -23,10 +24,10 @@ class ArtistController extends Controller
     public function show(int $artistId): JsonResponse
     {
         $artist = $this->artistRepository->getById($artistId);
-        $artistDto = $this->artistMapper->map($artist);
+        $artistDto = ArtistDto::mapArtist($artist);
 
         $albums = $this->albumRepository->getAllByArtist($artistDto->id);
-        $artistDto->albums = $this->albumMapper->mapMultiple($albums);
+        $artistDto->albums = AlbumDto::mapAlbumsArray($albums);
 
         return response()->json($artistDto);
     }
@@ -42,5 +43,41 @@ class ArtistController extends Controller
             'artistId' => $artistId,
             'message' => 'new artist created successfully',
         ]);
+    }
+
+    public function update(int $artistId, UpdateArtistRequest $request): JsonResponse
+    {
+        $data = $request->body();
+
+        if ($this->artistService->updateArtist(
+            $artistId,
+            $data->name,
+            $data->photo
+        )) {
+            return response()->json([
+                'artistId' => $artistId,
+                'message' => 'artist updated successfully'
+            ]);
+        } else {
+            return response()->json([
+                'artistId' => $artistId,
+                'message' => 'failed to update artist'
+            ], 400);
+        }
+    }
+
+    public function delete(int $artistId): JsonResponse
+    {
+        if ($this->artistService->deleteArtist($artistId)) {
+            return response()->json([
+                'artistId' => $artistId,
+                'message' => 'artist deleted successfully'
+            ]);
+        } else {
+            return response()->json([
+                'artistId' => $artistId,
+                'message' => 'failed to delete artist'
+            ], 400);
+        }
     }
 }

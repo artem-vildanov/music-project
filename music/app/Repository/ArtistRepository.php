@@ -57,6 +57,29 @@ class ArtistRepository implements ArtistRepositoryInterface
 //            'updated_at' => now(),
 //        ]);
     }
+
+    /**
+     * @param int $artistId
+     * @param string $name
+     * @param string $photoPath
+     * @return bool
+     */
+    public function update(int $artistId, string $name): bool
+    {
+        $artist = Artist::query()->find($artistId);
+        $artist->name = $name;
+        return $artist->save();
+    }
+
+    /**
+     * @param int $artistId
+     * @return bool
+     */
+    public function delete(int $artistId): bool
+    {
+        $artist = Artist::query()->find($artistId);
+        return $artist->delete();
+    }
 }
 
 

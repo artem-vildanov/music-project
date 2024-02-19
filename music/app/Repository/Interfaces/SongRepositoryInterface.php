@@ -21,6 +21,6 @@ interface SongRepositoryInterface {
 
     public function delete(int $songId): bool;
 
-    public function update(int $songId, string $name, string $musicPath, string $photoPath): bool;
+    public function update(int $songId, string $name): bool;
 
 }

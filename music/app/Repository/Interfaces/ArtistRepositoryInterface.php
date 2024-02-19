@@ -39,5 +39,16 @@ interface ArtistRepositoryInterface
      * @param int $userId
      * @return int
      */
-    public function create(string $name, string $photoPath, int $userId): int;
+    public function create(
+        string $name,
+        string $photoPath,
+        int $userId
+    ): int;
+
+    public function update(
+        int $artistId,
+        string $name
+    ): bool;
+
+    public function delete(int $artistId): bool;
 }

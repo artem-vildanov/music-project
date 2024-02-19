@@ -20,6 +20,7 @@ class AlbumService
         private readonly GenreRepositoryInterface $genreRepository,
         private readonly PhotoStorageService $photoStorageService,
         private readonly AudioStorageService $audioStorageService,
+        private readonly SongService $songService,
     ) {}
 
     public function saveAlbum(
@@ -82,7 +83,6 @@ class AlbumService
             $albumId,
             $updatedAlbum->name,
             $updatedAlbum->photo_path,
-            $updatedAlbum->status,
             $updatedAlbum->genre_id
         );
     }
@@ -90,17 +90,17 @@ class AlbumService
     public function deleteAlbum(int $albumId): bool
     {
         $album = $this->albumRepository->getById($albumId);
-        $songs = $this->songRepository->getAllByAlbum($albumId);
 
-        if (
-            $this->photoStorageService->deletePhoto($album->photo_path) and
-            $this->albumRepository->delete($albumId)
-        ) {
+        if ( $this->photoStorageService->deletePhoto($album->photo_path)) {
+
+            $songs = $this->songRepository->getAllByAlbum($albumId);
             foreach ($songs as $song) {
-                if (!$this->audioStorageService->deleteAudio($song->music_path)) {
+                if (!$this->songService->deleteSong($song->id)) {
                     return false;
                 }
             }
+
+            $this->albumRepository->delete($albumId);
 
             return true;
         } else {

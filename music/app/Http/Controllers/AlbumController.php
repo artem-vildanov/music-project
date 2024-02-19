@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\AlbumDto;
+use App\DataTransferObjects\SongDto;
 use App\Http\Requests\Album\CreateAlbumRequest;
 use App\Http\Requests\Album\UpdateAlbumRequest;
 use App\Mappers\AlbumMapper;
@@ -21,14 +23,13 @@ class AlbumController extends Controller
         private readonly ArtistRepositoryInterface $artistRepository,
         private readonly GenreRepositoryInterface $genreRepository,
         private readonly AlbumService $albumService,
-        private readonly AlbumMapper $albumMapper,
         private readonly SongMapper $songMapper,
     ) {}
 
     public function show(int $albumId): JsonResponse
     {
         $album = $this->albumRepository->getById($albumId);
-        $albumDto = $this->albumMapper->map($album);
+        $albumDto = AlbumDto::mapAlbum($album);
 
         $artist = $this->artistRepository->getById($album->artist_id);
         $albumDto->artistName = $artist->name;
@@ -37,7 +38,7 @@ class AlbumController extends Controller
         $albumDto->genreName = $genre->name;
 
         $songs = $this->songRepository->getAllByAlbum($album->id);
-        $albumDto->songs = $this->songMapper->mapMultiple($songs);
+        $albumDto->songs = SongDto::mapSongsArray($songs);
         foreach ($albumDto->songs as $song) {
             $song->artistName = $artist->name;
         }

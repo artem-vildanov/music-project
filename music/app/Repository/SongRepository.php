@@ -46,12 +46,10 @@ class SongRepository implements SongRepositoryInterface
         return $song->delete();
     }
 
-    public function update(int $songId, string $name, string $musicPath, string $photoPath): bool
+    public function update(int $songId, string $name): bool
     {
         $song = Song::query()->find($songId);
         $song->name = $name;
-        $song->music_path = $musicPath;
-        $song->photo_path = $photoPath;
         return $song->save();
     }
 }

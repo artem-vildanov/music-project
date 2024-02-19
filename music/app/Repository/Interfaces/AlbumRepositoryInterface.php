@@ -36,7 +36,6 @@ interface AlbumRepositoryInterface {
     public function update(
         int $albumId,
         string $name,
-        string $photoPath,
         string $status,
         int $genreId
     ): bool;

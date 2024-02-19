@@ -58,20 +58,17 @@ class AlbumRepository implements AlbumRepositoryInterface
     /**
      * @param int $albumId
      * @param string $name
-     * @param string $photoPath
      * @param string $status
      * @return bool
      */
     public function update(
         int $albumId,
         string $name,
-        string $photoPath,
         string $status,
         int $genreId
     ): bool {
         $album = Album::query()->find($albumId);
         $album->name = $name;
-        $album->photo_path = $photoPath;
         $album->status = $status;
         $album->genre_id = $genreId;
         return $album->save();

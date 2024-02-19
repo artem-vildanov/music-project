@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\SongDto;
 use App\Http\Requests\Song\CreateSongRequest;
 use App\Http\Requests\Song\UpdateSongRequest;
 use App\Mappers\SongMapper;
@@ -22,12 +23,12 @@ class SongController extends Controller
     ) {
     }
 
-    public function show(int $songId): JsonResponse
+    public function show(int $artistId, int $songId): JsonResponse
     {
         $song = $this->songRepository->getById($songId);
-        $songDto = $this->songMapper->map($song);
+        $songDto = SongDto::mapSong($song);
 
-        $artist = $this->artistRepository->getByUserId(auth()->id());
+        $artist = $this->artistRepository->getById($artistId);
         $songDto->artistName = $artist->name;
 
         return response()->json($songDto);

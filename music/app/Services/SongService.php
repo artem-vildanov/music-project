@@ -42,8 +42,6 @@ class SongService
         return $this->songRepository->update(
             $updatedSong->id,
             $updatedSong->name,
-            $updatedSong->music_path,
-            $updatedSong->photo_path
         );
     }
 
