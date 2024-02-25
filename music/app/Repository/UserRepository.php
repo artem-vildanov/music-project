@@ -3,15 +3,26 @@
 
 namespace App\Repository;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\DataAccessExceptions\UserException;
 use App\Models\User;
-use App\Repository\Interfaces\UserRepositoryInterface;
+use App\Repository\Interfaces\IUserRepository;
 
-class UserRepository implements UserRepositoryInterface
+class UserRepository implements IUserRepository
 {
 
-    public function getById($userId)
+    /**
+     * @throws DataAccessException
+     */
+    public function getById(int $userId): User
     {
-        // TODO: Implement getById() method.
+        $user = User::query()->find($userId);
+
+        if (!$user) {
+            throw UserException::notFound($userId);
+        }
+
+        return $user;
     }
 
     public function create(string $name, string $password, string $email, string $role): int
@@ -24,43 +35,45 @@ class UserRepository implements UserRepositoryInterface
         $user->save();
 
         return $user->id;
-
-//        return DB::table('users')->insertGetId([
-//            'name' => $name,
-//            'email' => $email,
-//            'password' => $password,
-//            'role' => $role,
-//            'created_at' => now(),
-//            'updated_at' => now(),
-//        ]);
     }
 
-    public function getByEmail(string $email): User|null
+    /**
+     * @throws DataAccessException
+     */
+    public function getByEmail(string $email): User
     {
-        return User::query()->where('email', $email)->first();
-        // return DB::table('users')->where('email', $email)->first();
+        $user = User::query()->where('email', $email)->first();
+
+        if (!$user) {
+            throw UserException::notFoundByEmail($email);
+        }
+
+        return $user;
     }
 
-    public function delete(int $userId): bool
+    public function delete(int $userId): void
     {
         // TODO: Implement delete() method.
     }
 
-    public function update(int $userId, string $name, string $email, string $role): bool
+    /**
+     * @throws DataAccessException
+     */
+    public function update(int $userId, string $name, string $email, string $role): void
     {
-        $user = User::query()->find($userId);
+        try {
+            $user = $this->getById($userId);
+        } catch (DataAccessException $e) {
+            throw UserException::failedToUpdate($userId);
+        }
 
         $user->name = $name;
         $user->email = $email;
         $user->role = $role;
 
-        return $user->save();
-
-//        return DB::table('users')->where('id', $userId)->update([
-//            'name' => $name ,
-//            'email' => $email,
-//            'role' => $role,
-//        ]);
+        if ($user->save()) {
+            throw UserException::failedToUpdate($userId);
+        }
     }
 }
 

@@ -2,17 +2,26 @@
 
 namespace App\Http\Controllers;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Http\Requests\User\CreateUserRequest;
-use App\Repository\Interfaces\UserRepositoryInterface;
+use App\Repository\Interfaces\IAlbumRepository;
+use App\Repository\Interfaces\IArtistRepository;
+use App\Repository\Interfaces\IFavouritesRepository;
+use App\Repository\Interfaces\IGenreRepository;
+use App\Repository\Interfaces\ISongRepository;
+use App\Repository\Interfaces\IUserRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository
+        private readonly IUserRepository $userRepository,
     ) {}
 
+    /**
+     * @throws DataAccessException
+     */
     public function signup(CreateUserRequest $request): JsonResponse
     {
         $data = $request->body();
@@ -28,4 +37,6 @@ class UserController extends Controller
             'access_token' => auth()->tokenById($userId)
         ]);
     }
+
+
 }

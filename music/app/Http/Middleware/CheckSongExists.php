@@ -2,7 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Repository\Interfaces\SongRepositoryInterface;
+use App\Repository\Interfaces\ISongRepository;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,7 +10,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckSongExists
 {
     public function __construct(
-        private readonly SongRepositoryInterface $songRepository
+        private readonly ISongRepository $songRepository
     ) {}
 
     public function handle(Request $request, Closure $next): Response

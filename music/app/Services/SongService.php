@@ -2,20 +2,26 @@
 
 namespace App\Services;
 
-use App\Repository\Interfaces\AlbumRepositoryInterface;
-use App\Repository\Interfaces\SongRepositoryInterface;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\MinioException;
+use App\Repository\Interfaces\IAlbumRepository;
+use App\Repository\Interfaces\ISongRepository;
 use Illuminate\Http\UploadedFile;
 
 class SongService
 {
     public function __construct(
         private readonly AudioStorageService $storageService,
-        private readonly SongRepositoryInterface $songRepository,
-        private readonly AlbumRepositoryInterface $albumRepository,
+        private readonly ISongRepository     $songRepository,
+        private readonly IAlbumRepository    $albumRepository,
     ) {
     }
 
-    public function saveSong(string $name, UploadedFile $musicFile, int $albumId): int|false
+    /**
+     * @throws DataAccessException
+     * @throws MinioException
+     */
+    public function saveSong(string $name, UploadedFile $musicFile, int $albumId): int
     {
         $album = $this->albumRepository->getById($albumId);
 
@@ -24,7 +30,11 @@ class SongService
         return $this->songRepository->create($name, $album->photo_path, $musicPath, $albumId);
     }
 
-    public function updateSong(int $songId, ?string $name, ?UploadedFile $musicFile): bool
+    /**
+     * @throws DataAccessException
+     * @throws MinioException
+     */
+    public function updateSong(int $songId, ?string $name, ?UploadedFile $musicFile): void
     {
         $song = $this->songRepository->getById($songId);
         $updatedSong = $song;
@@ -34,28 +44,24 @@ class SongService
         }
 
         if ($musicFile) {
-            if (!$this->storageService->updateAudio($song->music_path, $musicFile)) {
-                return false;
-            }
+            $this->storageService->updateAudio($song->music_path, $musicFile);
         }
 
-        return $this->songRepository->update(
+        $this->songRepository->update(
             $updatedSong->id,
             $updatedSong->name,
         );
     }
 
-    public function deleteSong(int $songId): bool
+    /**
+     * @throws DataAccessException
+     * @throws MinioException
+     */
+    public function deleteSong(int $songId): void
     {
         $song = $this->songRepository->getById($songId);
 
-        if (
-            $this->storageService->deleteAudio($song->music_path) and
-            $this->songRepository->delete($songId)
-        ) {
-            return true;
-        } else {
-            return false;
-        }
+        $this->storageService->deleteAudio($song->music_path);
+        $this->songRepository->delete($songId);
     }
 }

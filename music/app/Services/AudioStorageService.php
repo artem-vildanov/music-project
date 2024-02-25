@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\MinioException;
 use Aws\S3\S3Client;
 use Illuminate\Http\UploadedFile;
 
 class AudioStorageService
 {
-    public function saveAudio(string $albumFolderId, UploadedFile $file): string|null
+    /**
+     * @throws \App\Exceptions\MinioException
+     */
+    public function saveAudio(string $albumFolderId, UploadedFile $file): string
     {
         $fileName = uniqid(more_entropy: true);
         $filePath = "{$albumFolderId}/{$fileName}.mp3";
@@ -17,12 +21,23 @@ class AudioStorageService
         return $this->storeAudio($filePath, $file);
     }
 
-    public function updateAudio(string $filePath, UploadedFile $file): bool
+    /**
+     * @throws MinioException
+     */
+    public function updateAudio(string $filePath, UploadedFile $file): void
     {
-        return (bool)$this->storeAudio($filePath, $file);
+        try {
+            $this->storeAudio($filePath, $file);
+        } catch (MinioException $exception) {
+            throw MinioException::failedToUpdateAudio();
+        }
+
     }
 
-    public function deleteAudio(string $filePath): bool
+    /**
+     * @throws \App\Exceptions\MinioException
+     */
+    public function deleteAudio(string $filePath): void
     {
         $result = $this->getClient()->deleteObject([
             'Bucket' => 'audio',
@@ -31,10 +46,15 @@ class AudioStorageService
 
         $statusCode = $result['@metadata']['statusCode'];
 
-        return $statusCode === 204;
+        if ($statusCode !== 204) {
+            throw MinioException::failedToDeleteAudio();
+        }
     }
 
-    private function storeAudio(string $filePath, UploadedFile $file): string|null
+    /**
+     * @throws MinioException
+     */
+    private function storeAudio(string $filePath, UploadedFile $file): string
     {
         $result = $this->getClient()->putObject(
             [
@@ -48,7 +68,11 @@ class AudioStorageService
 
         $statusCode = $result['@metadata']['statusCode'];
 
-        return $statusCode === 200 ? $filePath : null;
+        if ($statusCode !== 200) {
+            throw MinioException::failedToSaveAudio();
+        }
+
+        return $filePath;
     }
 
 

@@ -3,16 +3,58 @@
 namespace App\Mappers;
 
 use App\DataTransferObjects\AlbumDto;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Models\Album;
+use App\Repository\Interfaces\IArtistRepository;
+use App\Repository\Interfaces\IFavouritesRepository;
+use App\Repository\Interfaces\IGenreRepository;
+use App\Repository\Interfaces\ISongRepository;
 
 
 class AlbumMapper
 {
+    public function __construct(
+        private readonly IGenreRepository $genreRepository,
+        private readonly IArtistRepository $artistRepository,
+        private readonly IFavouritesRepository $favouritesRepository,
+    ) {}
+
+    /**
+     * @param Album[] $albums
+     * @return AlbumDto[]
+     * @throws DataAccessException
+     */
+    public function mapMultipleAlbums(array $albums): array
+    {
+        $favouriteAlbumsIdsGroup = $this->favouritesRepository->getFavouriteAlbumsIds(auth()->id());
+        $albumsDtoGroup = [];
+
+        foreach($albums as $album) {
+            $albumDto = $this->map($album);
+            $albumDto = in_array($albumDto->id, $favouriteAlbumsIdsGroup);
+            $albumsDtoGroup[] = $albumDto;
+        }
+
+        return $albumsDtoGroup;
+    }
+
     /**
      * @param Album $album map from
      * @return AlbumDto
+     * @throws DataAccessException
      */
-    public function map(Album $album): AlbumDto
+    public function mapSingleAlbum(Album $album): AlbumDto
+    {
+        $albumDto = $this->map($album);
+        $albumDto->isFavourite = $this->favouritesRepository->checkAlbumIsFavourite(auth()->id(), $albumDto->id);
+
+        return $albumDto;
+    }
+
+    /**
+     * @throws DataAccessException
+     */
+    private function map(Album $album): AlbumDto
     {
         $albumDto = new AlbumDto();
         $albumDto->id = $album->id;
@@ -20,26 +62,10 @@ class AlbumMapper
         $albumDto->likes = $album->likes;
         $albumDto->photoPath = $album->photo_path;
         $albumDto->artistId = $album->artist_id;
+        $albumDto->artistName = $this->artistRepository->getById($albumDto->artistId)->name;
         $albumDto->genreId = $album->genre_id;
+        $albumDto->genreName = $this->genreRepository->getById($albumDto->genreId)->name;
 
         return $albumDto;
-    }
-
-    /**
-     * @param array<Album> $albums
-     * @return array<AlbumDto>
-     */
-    public function mapMultiple(array $albums): array
-    {
-        /** @var array<AlbumDto> $albumDtoCollection */
-        $albumDtoCollection = [];
-
-        foreach ($albums as $album)
-        {
-            $albumDto = $this->map($album);
-            $albumDtoCollection[] = $albumDto;
-        }
-
-        return $albumDtoCollection;
     }
 }

@@ -3,22 +3,37 @@
 
 namespace App\Repository;
 
+use App\Exceptions\DataAccessExceptions\ArtistException;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Models\Artist;
-use App\Repository\Interfaces\ArtistRepositoryInterface;
+use App\Repository\Interfaces\IArtistRepository;
 
-class ArtistRepository implements ArtistRepositoryInterface
+class ArtistRepository implements IArtistRepository
 {
-
-    public function getById(int $artistId): Artist|null
+    public function getById(int $artistId): Artist
     {
-        return Artist::query()->find($artistId);
-        //return DB::table('artists')->where('id', $artistId)->first();
+        $artist = Artist::query()->find($artistId);
+        if (!$artist) {
+            throw ArtistException::notFound($artistId);
+        }
+
+        return $artist;
     }
 
-    public function getByUserId(int $userId): Artist|null
+
+    public function getMultipleByIds(array $artistIds): array
     {
-        return Artist::query()->where('user_id', $userId)->first();
-        //return DB::table('artists')->where('user_id', $userId)->first();
+        return Artist::query()->whereIn('id', $artistIds)->get()->all();
+    }
+
+    public function getByUserId(int $userId): Artist
+    {
+        $artist = Artist::query()->where('user_id', $userId)->first();
+        if (!$artist) {
+            throw ArtistException::notFoundByUserId($userId);
+        }
+
+        return $artist;
     }
 
     public function getUserFavourites($userId): array
@@ -44,41 +59,42 @@ class ArtistRepository implements ArtistRepositoryInterface
         $artist->created_at = now();
         $artist->updated_at = now();
 
-        $artist->save();
+        if (!$artist->save()) {
+            throw ArtistException::failedToCreate();
+        }
 
         return $artist->id;
-
-//        return DB::table('artists')->insertGetId([
-//            'name' => $name,
-//            'photo_path' => $photoPath,
-//            'likes' => 0,
-//            'user_id' => $userId,
-//            'created_at' => now(),
-//            'updated_at' => now(),
-//        ]);
     }
 
-    /**
-     * @param int $artistId
-     * @param string $name
-     * @param string $photoPath
-     * @return bool
-     */
-    public function update(int $artistId, string $name): bool
+    public function update(int $artistId, string $name): void
     {
-        $artist = Artist::query()->find($artistId);
+        $artist = new Artist();
+
+        try {
+            $artist = $this->getById($artistId);
+        } catch (DataAccessException $e) {
+            throw ArtistException::failedToUpdate($artistId);
+        }
+
         $artist->name = $name;
-        return $artist->save();
+        if (!$artist->save()) {
+            throw ArtistException::failedToUpdate($artistId);
+        }
     }
 
-    /**
-     * @param int $artistId
-     * @return bool
-     */
-    public function delete(int $artistId): bool
+    public function delete(int $artistId): void
     {
-        $artist = Artist::query()->find($artistId);
-        return $artist->delete();
+        $artist = new Artist();
+
+        try {
+            $artist = $this->getById($artistId);
+        } catch (DataAccessException $e) {
+            throw ArtistException::failedToDelete($artistId);
+        }
+
+        if (!$artist->delete()) {
+            throw ArtistException::failedToDelete($artistId);
+        }
     }
 }
 

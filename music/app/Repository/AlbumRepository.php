@@ -2,24 +2,32 @@
 
 namespace App\Repository;
 
+use App\Exceptions\DataAccessExceptions\AlbumException;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Models\Album;
-use App\Repository\Interfaces\AlbumRepositoryInterface;
+use App\Repository\Interfaces\IAlbumRepository;
 
 
-class AlbumRepository implements AlbumRepositoryInterface
+class AlbumRepository implements IAlbumRepository
 {
-
-    public function getById(int $albumId): Album|null
+    public function getById(int $albumId): Album
     {
-        return Album::query()->find($albumId);
+        $album = Album::query()->find($albumId);
+        if (!$album) {
+            throw AlbumException::notFound($albumId);
+        } else {
+            return $album;
+        }
+    }
 
-        // return DB::table('albums')->where('id', $albumId)->first();
+    public function getMultipleByIds(array $albumsIds): array
+    {
+        return Album::query()->whereIn('id', $albumsIds)->get()->all();
     }
 
     public function getAllByArtist(int $artistId): array
     {
         return Album::query()->where('artist_id', $artistId)->get()->all();
-        //return DB::table('albums')->where('artist_id', $artistId)->get()->all();
     }
 
     public function getAllByUser(int $userId)
@@ -50,37 +58,44 @@ class AlbumRepository implements AlbumRepositoryInterface
         $album->created_at = now();
         $album->updated_at = now();
 
-        $album->save();
+        if (!$album->save()) {
+            throw AlbumException::failedToCreate();
+        }
 
         return $album->id;
     }
 
-    /**
-     * @param int $albumId
-     * @param string $name
-     * @param string $status
-     * @return bool
-     */
     public function update(
         int $albumId,
         string $name,
         string $status,
         int $genreId
-    ): bool {
-        $album = Album::query()->find($albumId);
+    ): void {
+        try {
+            $album = $this->getById($albumId);
+        } catch (DataAccessException $e) {
+            throw AlbumException::failedToUpdate($albumId);
+        }
+
         $album->name = $name;
         $album->status = $status;
         $album->genre_id = $genreId;
-        return $album->save();
+
+        if (!$album->save()) {
+            throw AlbumException::failedToUpdate($albumId);
+        }
     }
 
-    /**
-     * @param int $albumId
-     * @return bool
-     */
-    public function delete(int $albumId): bool
+    public function delete(int $albumId): void
     {
-        $album = Album::query()->find($albumId);
-        return $album->delete();
+        try {
+            $album = $this->getById($albumId);
+        } catch (DataAccessException $e) {
+            throw AlbumException::failedToDelete($albumId);
+        }
+
+        if (!$album->delete()) {
+            throw AlbumException::failedToDelete($albumId);
+        }
     }
 }

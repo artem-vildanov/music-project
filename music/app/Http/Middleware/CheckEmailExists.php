@@ -2,7 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Repository\Interfaces\UserRepositoryInterface;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Repository\Interfaces\IUserRepository;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,20 +11,18 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckEmailExists
 {
     public function __construct(
-        private readonly UserRepositoryInterface $userRepository,
+        private readonly IUserRepository $userRepository,
     ) {}
 
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response) $next
+     * @throws DataAccessException
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($this->userRepository->getByEmail($request->input('email')))
-            return response()->json([
-                'message' => 'User with this email already exists'
-            ], 400);
+        $this->userRepository->getByEmail($request->input('email'));
 
         return $next($request);
     }

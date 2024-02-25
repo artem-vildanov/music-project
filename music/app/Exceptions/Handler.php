@@ -2,8 +2,10 @@
 
 namespace App\Exceptions;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\FavouritesExceptions\FavouritesException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Throwable;
+use Illuminate\Http\Request;
 
 class Handler extends ExceptionHandler
 {
@@ -23,8 +25,32 @@ class Handler extends ExceptionHandler
      */
     public function register(): void
     {
-        $this->reportable(function (Throwable $e) {
-            //
+//        $this->reportable(function (Throwable $e) {
+//            //
+//        });
+
+        $this->renderable(function (DataAccessException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
+        });
+
+        $this->renderable(function (MinioException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
+        });
+
+        $this->renderable(function (PlaylistSongsException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
+        });
+
+        $this->renderable(function (FavouritesException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
         });
     }
 }

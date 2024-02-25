@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Exceptions\MinioException;
 use Aws\S3\S3Client;
 use Illuminate\Http\UploadedFile;
 
 class PhotoStorageService
 {
+    /**
+     * @throws MinioException
+     */
     public function saveAlbumPhoto(UploadedFile $file): string|null
     {
         $fileName = uniqid(more_entropy: true);
@@ -17,7 +21,10 @@ class PhotoStorageService
         return $this->storePhoto($filePath, $file);
     }
 
-    public function saveArtistPhoto(UploadedFile $file): string|null
+    /**
+     * @throws MinioException
+     */
+    public function saveArtistPhoto(UploadedFile $file): string
     {
         $fileName = uniqid(more_entropy: true);
         $filePath = "artist/{$fileName}.png";
@@ -25,12 +32,33 @@ class PhotoStorageService
         return $this->storePhoto($filePath, $file);
     }
 
-    public function updatePhoto(string $filePath, UploadedFile $file): bool
+    /**
+     * @throws MinioException
+     */
+    public function savePlaylistPhoto(UploadedFile $file): string
     {
-        return (bool)$this->storePhoto($filePath, $file);
+        $fileName = uniqid(more_entropy: true);
+        $filePath = "playlist/{$fileName}.png";
+
+        return $this->storePhoto($filePath, $file);
     }
 
-    public function deletePhoto(string $filePath): bool
+    /**
+     * @throws MinioException
+     */
+    public function updatePhoto(string $filePath, UploadedFile $file): void
+    {
+        try {
+            $this->storePhoto($filePath, $file);
+        } catch (MinioException $e) {
+            throw MinioException::failedToUpdatePhoto();
+        }
+    }
+
+    /**
+     * @throws MinioException
+     */
+    public function deletePhoto(string $filePath): void
     {
         $result = $this->getClient()->deleteObject([
             'Bucket' => 'photo',
@@ -39,10 +67,15 @@ class PhotoStorageService
 
         $statusCode = $result['@metadata']['statusCode'];
 
-        return $statusCode === 204;
+        if($statusCode !== 204) {
+            throw MinioException::failedToDeletePhoto();
+        }
     }
 
-    private function storePhoto(string $filePath, UploadedFile $file): string|null
+    /**
+     * @throws MinioException
+     */
+    private function storePhoto(string $filePath, UploadedFile $file): string
     {
         $result = $this->getClient()->putObject(
             [
@@ -56,9 +89,11 @@ class PhotoStorageService
 
         // $this->getClient()->waitUntil('ObjectExists', ['Bucket' => 'photo', 'Key' => $filePath]);
 
+        if ($statusCode !== 200) {
+            throw MinioException::failedToSavePhoto();
+        }
 
-
-        return $statusCode === 200 ? $filePath : null;
+        return $filePath;
     }
 
     private function getClient(): S3Client

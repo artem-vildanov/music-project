@@ -2,20 +2,35 @@
 
 namespace App\Repository;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\DataAccessExceptions\SongException;
 use App\Models\Song;
-use App\Repository\Interfaces\SongRepositoryInterface;
+use App\Repository\Interfaces\ISongRepository;
 
-class SongRepository implements SongRepositoryInterface
+class SongRepository implements ISongRepository
 {
-    public function getById(int $songId): Song|null
+    /**
+     * @throws \App\Exceptions\DataAccessExceptions\DataAccessException
+     */
+    public function getById(int $songId): Song
     {
-        return Song::query()->find($songId);
+        $song = Song::query()->find($songId);
+
+        if (!$song) {
+            throw SongException::notFound($songId);
+        }
+
+        return $song;
+    }
+
+    public function getMultipleByIds(array $songsIds): array
+    {
+        return Song::query()->whereIn('id', $songsIds)->get()->all();
     }
 
     public function getAllByAlbum(int $albumId): array
     {
         return Song::query()->where('album_id', $albumId)->get()->all();
-        // return DB::table('songs')->where('album_id', $albumId)->get()->all();
     }
 
     public function create(string $name, string $photoPath, string $musicPath, int $albumId): int
@@ -30,26 +45,39 @@ class SongRepository implements SongRepositoryInterface
         $song->save();
 
         return $song->id;
-
-//        return DB::table('songs')->insertGetId([
-//            'name' => $name,
-//            'likes' => 0,
-//            'photo_path' => $photoPath,
-//            'music_path' => $musicPath,
-//            'album_id' => $albumId,
-//        ]);
     }
 
-    public function delete(int $songId): bool
+    /**
+     * @throws DataAccessException
+     */
+    public function delete(int $songId): void
     {
-        $song = Song::query()->find($songId);
-        return $song->delete();
+        try {
+            $song = $this->getById($songId);
+        } catch (DataAccessException $e) {
+            throw SongException::failedToDelete($songId);
+        }
+
+        if (!$song->delete()) {
+            throw SongException::failedToDelete($songId);
+        }
     }
 
-    public function update(int $songId, string $name): bool
+    /**
+     * @throws DataAccessException
+     */
+    public function update(int $songId, string $name): void
     {
-        $song = Song::query()->find($songId);
+        try {
+            $song = $this->getById($songId);
+        } catch (DataAccessException $e) {
+            throw SongException::failedToUpdate($songId);
+        }
+
         $song->name = $name;
-        return $song->save();
+
+        if (!$song->save()) {
+            throw SongException::failedToUpdate($songId);
+        }
     }
 }

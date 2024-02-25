@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use App\Repository\Interfaces\AlbumRepositoryInterface;
-use App\Repository\Interfaces\ArtistRepositoryInterface;
+use App\Repository\Interfaces\IAlbumRepository;
+use App\Repository\Interfaces\IArtistRepository;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -11,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckArtistExists
 {
     public function __construct(
-        private readonly ArtistRepositoryInterface $artistRepository
+        private readonly IArtistRepository $artistRepository
     ) {}
 
     public function handle(Request $request, Closure $next): Response

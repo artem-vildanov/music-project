@@ -4,64 +4,60 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Repository\Interfaces\AlbumRepositoryInterface;
-use App\Repository\Interfaces\ArtistRepositoryInterface;
-use App\Repository\Interfaces\GenreRepositoryInterface;
-use App\Repository\Interfaces\SongRepositoryInterface;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\MinioException;
+use App\Repository\Interfaces\IAlbumRepository;
+use App\Repository\Interfaces\IArtistRepository;
+use App\Repository\Interfaces\IGenreRepository;
+use App\Repository\Interfaces\ISongRepository;
 use Illuminate\Http\UploadedFile;
 
 class AlbumService
 {
 
     public function __construct(
-        private readonly AlbumRepositoryInterface $albumRepository,
-        private readonly ArtistRepositoryInterface $artistRepository,
-        private readonly SongRepositoryInterface $songRepository,
-        private readonly GenreRepositoryInterface $genreRepository,
+        private readonly IAlbumRepository    $albumRepository,
+        private readonly IArtistRepository   $artistRepository,
+        private readonly ISongRepository     $songRepository,
+        private readonly IGenreRepository    $genreRepository,
         private readonly PhotoStorageService $photoStorageService,
-        private readonly AudioStorageService $audioStorageService,
-        private readonly SongService $songService,
+        private readonly SongService         $songService,
     ) {}
 
+    /**
+     * @throws MinioException
+     * @throws DataAccessException
+     */
     public function saveAlbum(
         string $name,
         UploadedFile $albumPhoto,
         int $genreId
-    ): null|int {
-
-        if (!$this->genreRepository->getById($genreId)) {
-            return null;
-        }
-
-        $artist = $this->artistRepository->getByUserId(auth()->id());
-
-        if (!$artist)
-            return null;
+    ): int {
+        $this->genreRepository->getById($genreId);
 
         $photoPath = $this->photoStorageService->saveAlbumPhoto($albumPhoto);
-
-        if (!$photoPath)
-            return null;
+        $artist = $this->artistRepository->getByUserId(auth()->id());
 
         return $this->albumRepository->create($name, $photoPath, $artist->id, $genreId);
     }
 
+    /**
+     * @throws DataAccessException
+     * @throws MinioException
+     */
     public function updateAlbum(
         int $albumId,
         ?string $name,
         ?UploadedFile $photoFile,
         ?string $status,
         ?int $genreId
-    ): bool {
+    ): void {
 
         $album = $this->albumRepository->getById($albumId);
         $updatedAlbum = $album;
 
         if ($genreId) {
-            if (!$this->genreRepository->getById($genreId)) {
-                return false;
-            }
-
+            $this->genreRepository->getById($genreId);
             $updatedAlbum->genre_id = $genreId;
         }
 
@@ -70,16 +66,14 @@ class AlbumService
         }
 
         if ($photoFile) {
-            if (!$this->photoStorageService->updatePhoto($album->photo_path, $photoFile)) {
-                return false;
-            }
+            $this->photoStorageService->updatePhoto($album->photo_path, $photoFile);
         }
 
         if ($status) {
             $updatedAlbum->status = $status;
         }
 
-        return $this->albumRepository->update(
+        $this->albumRepository->update(
             $albumId,
             $updatedAlbum->name,
             $updatedAlbum->photo_path,
@@ -87,24 +81,21 @@ class AlbumService
         );
     }
 
-    public function deleteAlbum(int $albumId): bool
+    /**
+     * @throws DataAccessException
+     * @throws MinioException
+     */
+    public function deleteAlbum(int $albumId): void
     {
         $album = $this->albumRepository->getById($albumId);
 
-        if ( $this->photoStorageService->deletePhoto($album->photo_path)) {
+        $this->photoStorageService->deletePhoto($album->photo_path);
 
-            $songs = $this->songRepository->getAllByAlbum($albumId);
-            foreach ($songs as $song) {
-                if (!$this->songService->deleteSong($song->id)) {
-                    return false;
-                }
-            }
-
-            $this->albumRepository->delete($albumId);
-
-            return true;
-        } else {
-            return false;
+        $songs = $this->songRepository->getAllByAlbum($albumId);
+        foreach ($songs as $song) {
+            $this->songService->deleteSong($song->id);
         }
+
+        $this->albumRepository->delete($albumId);
     }
 }
