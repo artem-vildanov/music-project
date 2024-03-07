@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Repository\Interfaces\ISongRepository;
 use Closure;
 use Illuminate\Http\Request;
@@ -13,6 +14,9 @@ class CheckSongExists
         private readonly ISongRepository $songRepository
     ) {}
 
+    /**
+     * @throws DataAccessException
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $songId = (int)$request->route('songId');
@@ -20,19 +24,8 @@ class CheckSongExists
 
         $song = $this->songRepository->getById($songId);
 
-        if (!$song) {
-            return response()->json([
-                'songId' => $songId,
-                'message' => 'such song does not exist',
-            ], 400);
-        }
-
         if ($song->album_id !== $albumId) {
-            return response()->json([
-                'songId' => $songId,
-                'albumId' => $albumId,
-                'message' => 'there is no such song in that album'
-            ]);
+            return response()->json('', 404);
         }
 
         return $next($request);

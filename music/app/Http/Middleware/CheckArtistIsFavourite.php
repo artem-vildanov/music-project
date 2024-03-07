@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IFavouritesRepository;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class CheckArtistIsFavourite
     public function handle(Request $request, Closure $next): Response
     {
         $artistId = $request->route('artistId');
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         if (!$this->favouritesRepository->checkArtistIsFavourite($userId, $artistId)) {
             return response()->json([

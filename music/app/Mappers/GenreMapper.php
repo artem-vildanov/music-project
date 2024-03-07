@@ -3,6 +3,7 @@
 namespace App\Mappers;
 
 use App\DataTransferObjects\GenreDto;
+use App\Facades\AuthFacade;
 use App\Models\Genre;
 use App\Repository\Interfaces\IFavouritesRepository;
 
@@ -14,7 +15,8 @@ class GenreMapper
 
     public function mapMultipleGenres(array $genres): array
     {
-        $favouriteGenresIdsGroup = $this->favouritesRepository->getFavouriteGenresIds(auth()->id());
+        $authUserId = AuthFacade::getUserId();
+        $favouriteGenresIdsGroup = $this->favouritesRepository->getFavouriteGenresIds($authUserId);
         $genresDtoGroup = [];
 
         foreach($genres as $genre) {
@@ -29,7 +31,8 @@ class GenreMapper
     public function mapSingleGenre(Genre $genre): GenreDto
     {
         $genreDto = $this->map($genre);
-        $genreDto->isFavourite = $this->favouritesRepository->checkGenreIsFavourite(auth()->id(), $genreDto->id);
+        $authUserId = AuthFacade::getUserId();
+        $genreDto->isFavourite = $this->favouritesRepository->checkGenreIsFavourite($authUserId, $genreDto->id);
 
         return $genreDto;
     }

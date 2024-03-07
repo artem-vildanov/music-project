@@ -6,6 +6,7 @@ use App\Exceptions\DataAccessExceptions\AlbumException;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Models\Album;
 use App\Repository\Interfaces\IAlbumRepository;
+use Illuminate\Support\Facades\DB;
 
 
 class AlbumRepository implements IAlbumRepository
@@ -22,6 +23,8 @@ class AlbumRepository implements IAlbumRepository
 
     public function getMultipleByIds(array $albumsIds): array
     {
+        $res = DB::table('users')->get()->all();
+
         return Album::query()->whereIn('id', $albumsIds)->get()->all();
     }
 

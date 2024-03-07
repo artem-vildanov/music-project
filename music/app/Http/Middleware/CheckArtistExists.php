@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use Closure;
@@ -14,18 +15,13 @@ class CheckArtistExists
         private readonly IArtistRepository $artistRepository
     ) {}
 
+    /**
+     * @throws DataAccessException
+     */
     public function handle(Request $request, Closure $next): Response
     {
         $artistId = (int)$request->route('artistId');
-
-        $artist = $this->artistRepository->getById($artistId);
-
-        if (!$artist) {
-            return response()->json([
-                'artistId' => $artistId,
-                'message' => 'such artist does not exist',
-            ], 400);
-        }
+        $this->artistRepository->getById($artistId);
 
         return $next($request);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IFavouritesRepository;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class CheckGenreIsFavourite
     public function handle(Request $request, Closure $next): Response
     {
         $genreId = $request->route('genreId');
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         if (!$this->favouritesRepository->checkGenreIsFavourite($userId, $genreId)) {
             return response()->json([

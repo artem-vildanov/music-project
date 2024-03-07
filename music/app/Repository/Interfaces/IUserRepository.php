@@ -28,9 +28,9 @@ interface IUserRepository {
      * @param string $email
      * @param string $role
      * @throws DataAccessException
-     * @return int
+     * @return User
      */
-    public function create(string $name, string $password, string $email, string $role): int;
+    public function create(string $name, string $password, string $email, string $role): User;
 
     /**
      * @param int $userId

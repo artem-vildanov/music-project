@@ -4,6 +4,7 @@ namespace App\Mappers;
 
 use App\DataTransferObjects\SongDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Facades\AuthFacade;
 use App\Models\Song;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
@@ -74,13 +75,13 @@ class SongMapper
 
     private function checkSongIsFavourite(int $songId): bool
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
         return $this->favouritesRepository->checkSongIsFavourite($userId, $songId);
     }
 
     private function getPlaylistsWithSong(int $songId): array
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
         $playlistsIdsGroup = $this->playlistSongsRepository->getUserPlaylistsIdsWithSong($songId, $userId);
         $playlistsModelsGroup = $this->playlistRepository->getMultipleByIds($playlistsIdsGroup);
         return $this->playlistMapper->mapMultiplePlaylists($playlistsModelsGroup);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
 use App\Exceptions\PlaylistSongsException;
+use App\Facades\AuthFacade;
 use App\Http\Requests\Playlist\CreatePlaylistRequest;
 use App\Http\Requests\Playlist\UpdatePlaylistRequest;
 use App\Mappers\PlaylistMapper;
@@ -49,7 +50,7 @@ class PlaylistController extends Controller
 
     public function showUserPlaylists(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $playlists = $this->playlistRepository->getPlaylistsModelsByUserId($userId);
         $playlistDtoCollection = $this->playlistMapper->mapMultiplePlaylists($playlists);

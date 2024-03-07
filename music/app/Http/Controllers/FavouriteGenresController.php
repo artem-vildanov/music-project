@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FavouritesExceptions\FavouritesException;
+use App\Facades\AuthFacade;
 use App\Mappers\GenreMapper;
 use App\Repository\Interfaces\IFavouriteGenresRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
@@ -20,7 +21,7 @@ class FavouriteGenresController extends Controller
 
     public function showFavouriteGenres(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $genresIds = $this->favouritesRepository->getFavouriteGenresIds($userId);
         $genres = $this->genreRepository->getMultipleByIds($genresIds);
@@ -34,7 +35,7 @@ class FavouriteGenresController extends Controller
      */
     public function addToFavouriteGenres(int $genreId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->addGenreToFavourites($genreId, $userId);
         $this->favouritesRepository->incrementGenreLikes($genreId);
@@ -47,7 +48,7 @@ class FavouriteGenresController extends Controller
      */
     public function deleteFromFavouriteGenres(int $genreId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->deleteGenreFromFavourites($genreId, $userId);
         $this->favouritesRepository->decrementGenreLikes($genreId);

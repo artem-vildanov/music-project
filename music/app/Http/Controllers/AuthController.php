@@ -2,82 +2,101 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\Controller;
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\JwtException;
+use App\Exceptions\RedisException;
+use App\Facades\AuthFacade;
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Requests\Auth\SignupRequest;
+use App\Models\User;
+use App\Repository\UserRepository;
+use App\Services\TokenService;
+use App\Services\EncodeDecodeService;
+use App\Services\TokenStorageService;
+use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
-    /**
-     * Create a new AuthController instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        $this->middleware('auth:api', ['except' => ['login', 'refresh']]);
+    public function __construct(
+        private readonly UserRepository      $userRepository,
+        private readonly TokenService        $tokenService
+    ) {
     }
 
+
     /**
-     * Get a JWT via given credentials.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * @throws DataAccessException
      */
-    public function login()
+    public function signup(SignupRequest $request): JsonResponse
     {
-        $credentials = request(['email', 'password']);
+        $data = $request->body();
 
-        if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        $user = $this->userRepository->create(
+            $data->name,
+            Hash::make($data->password),
+            $data->email,
+            'base_user',
+        );
 
+        $token = $this->tokenService->createToken($user);
         return $this->respondWithToken($token);
     }
 
     /**
-     * Get the authenticated User.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * @throws DataAccessException
      */
-    public function me()
+    public function login(LoginRequest $request): JsonResponse
     {
-        return response()->json(auth()->user());
+        $credentials = $request->body();
+
+        $user = $this->userRepository->getByEmail($credentials->email);
+        if (!Hash::check($credentials->password, $user->password)) {
+            return response()->json([],403);
+        }
+
+        $token = $this->tokenService->createToken($user);
+
+        return $this->respondWithToken($token);
+    }
+
+    public function me(): JsonResponse
+    {
+        $tokenPayload = AuthFacade::getAuthInfo();
+        return response()->json($tokenPayload);
     }
 
     /**
-     * Log the user out (Invalidate the token).
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * @throws JwtException
      */
-    public function logout()
+    public function logout(Request $request): JsonResponse
     {
-        auth()->logout();
+        $token = $this->tokenService->getTokenFromRequest($request);
+        $this->tokenService->logoutByToken($token);
 
         return response()->json(['message' => 'Successfully logged out']);
     }
 
     /**
-     * Refresh a token.
-     *
-     * @return \Illuminate\Http\JsonResponse
+     * @throws JwtException
+     * @throws DataAccessException
      */
-    public function refresh()
+    public function refresh(Request $request): JsonResponse
     {
-        return $this->respondWithToken(auth()->refresh());
+        $token = $this->tokenService->getTokenFromRequest($request);
+        $newToken = $this->tokenService->refreshToken($token);
+
+        return $this->respondWithToken($newToken);
     }
 
-    /**
-     * Get the token array structure.
-     *
-     * @param  string $token
-     *
-     * @return \Illuminate\Http\JsonResponse
-     */
-    protected function respondWithToken($token)
+    protected function respondWithToken($token): JsonResponse
     {
         return response()->json([
             'access_token' => $token,
-            'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'token_type' => 'Bearer',
+            'expires_in' => (int)config('jwt.ttl'),
         ]);
     }
 }

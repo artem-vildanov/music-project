@@ -52,5 +52,17 @@ class Handler extends ExceptionHandler
                 'message' => $exception->getMessage(),
             ], $exception->getCode());
         });
+
+        $this->renderable(function (RedisException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
+        });
+
+        $this->renderable(function (JwtException $exception, Request $request) {
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], $exception->getCode());
+        });
     }
 }

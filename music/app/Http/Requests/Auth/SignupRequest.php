@@ -1,11 +1,11 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Auth;
 
-use App\Http\RequestModels\User\CreateUserModel;
+use App\Http\RequestModels\Auth\SignupRequestModel;
 use App\Http\Requests\BaseFormRequest;
 
-class CreateUserRequest extends BaseFormRequest
+class SignupRequest extends BaseFormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -21,9 +21,9 @@ class CreateUserRequest extends BaseFormRequest
         ];
     }
 
-    public function body(): CreateUserModel
+    public function body(): SignupRequestModel
     {
-        $model = new CreateUserModel();
+        $model = new SignupRequestModel();
         $model->name = $this->string('name');
         $model->email = $this->string('email');
         $model->password = $this->string('password');

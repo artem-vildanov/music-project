@@ -25,7 +25,7 @@ class UserRepository implements IUserRepository
         return $user;
     }
 
-    public function create(string $name, string $password, string $email, string $role): int
+    public function create(string $name, string $password, string $email, string $role): User
     {
         $user = new User;
         $user->name = $name;
@@ -34,7 +34,7 @@ class UserRepository implements IUserRepository
         $user->role = $role;
         $user->save();
 
-        return $user->id;
+        return $user;
     }
 
     /**
@@ -71,7 +71,7 @@ class UserRepository implements IUserRepository
         $user->email = $email;
         $user->role = $role;
 
-        if ($user->save()) {
+        if (!$user->save()) {
             throw UserException::failedToUpdate($userId);
         }
     }

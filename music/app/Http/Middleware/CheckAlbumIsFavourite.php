@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IFavouritesRepository;
 use Closure;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class CheckAlbumIsFavourite
     public function handle(Request $request, Closure $next): Response
     {
         $albumId = $request->route('albumId');
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         if (!$this->favouritesRepository->checkAlbumIsFavourite($userId, $albumId)) {
             return response()->json([

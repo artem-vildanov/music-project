@@ -3,6 +3,7 @@
 namespace App\Mappers;
 
 use App\DataTransferObjects\ArtistDto;
+use App\Facades\AuthFacade;
 use App\Models\Artist;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
@@ -19,7 +20,8 @@ class ArtistMapper
      */
     public function mapMultipleArtists(array $artists): array
     {
-        $favouriteArtistsIdsGroup = $this->favouritesRepository->getFavouriteArtistsIds(auth()->id());
+        $authUserId = AuthFacade::getUserId();
+        $favouriteArtistsIdsGroup = $this->favouritesRepository->getFavouriteArtistsIds($authUserId);
         $artistsDtoGroup = [];
 
         foreach($artists as $artist) {
@@ -38,7 +40,8 @@ class ArtistMapper
     public function mapSingleArtist(Artist $artist): ArtistDto
     {
         $artistDto = $this->map($artist);
-        $artistDto->isFavourite = $this->favouritesRepository->checkArtistIsFavourite(auth()->id(), $artist->id);
+        $authUserId = AuthFacade::getUserId();
+        $artistDto->isFavourite = $this->favouritesRepository->checkArtistIsFavourite($authUserId, $artist->id);
 
         return $artistDto;
     }

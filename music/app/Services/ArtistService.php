@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IUserRepository;
@@ -30,7 +31,7 @@ class ArtistService
         if (!$photoPath)
             return null;
 
-        $user = auth()->user();
+        $user = AuthFacade::getAuthInfo();
         $this->userRepository->update($user->id, $user->name, $user->email, 'artist');
 
         return $this->artistRepository->create($name, $photoPath, $user->id);
@@ -76,7 +77,7 @@ class ArtistService
 
         $this->artistRepository->delete($artistId);
 
-        $user = auth()->user();
+        $user = AuthFacade::getAuthInfo();
         $this->userRepository->update(
             $user->id,
             $user->name,

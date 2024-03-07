@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
-use App\Http\Requests\User\CreateUserRequest;
+use App\Http\Requests\Auth\SignupRequest;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
@@ -22,21 +22,7 @@ class UserController extends Controller
     /**
      * @throws DataAccessException
      */
-    public function signup(CreateUserRequest $request): JsonResponse
-    {
-        $data = $request->body();
 
-        $userId = $this->userRepository->create(
-            $data->name,
-            Hash::make($data->password),
-            $data->email,
-            'base_user',
-        );
-
-        return response()->json([
-            'access_token' => auth()->tokenById($userId)
-        ]);
-    }
 
 
 }

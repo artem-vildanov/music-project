@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\DataTransferObjects\AlbumDto;
 use App\Exceptions\FavouritesExceptions\FavouritesException;
+use App\Facades\AuthFacade;
 use App\Mappers\AlbumMapper;
 use App\Models\Album;
 use App\Repository\Interfaces\IAlbumRepository;
@@ -24,7 +25,7 @@ class FavouriteAlbumsController extends Controller
 
     public function showFavouriteAlbums(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $albumsIds = $this->favouritesRepository->getFavouriteAlbumsIds($userId);
         $albums = $this->albumRepository->getMultipleByIds($albumsIds);
@@ -38,7 +39,7 @@ class FavouriteAlbumsController extends Controller
      */
     public function addToFavouriteAlbums(int $artistId, int $albumId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->addAlbumToFavourites($albumId, $userId);
         $this->favouritesRepository->incrementAlbumLikes($albumId);
@@ -51,7 +52,7 @@ class FavouriteAlbumsController extends Controller
      */
     public function deleteFromFavouriteAlbums(int $artistId, int $albumId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->deleteAlbumFromFavourites($albumId, $userId);
         $this->favouritesRepository->decrementAlbumLikes($albumId);

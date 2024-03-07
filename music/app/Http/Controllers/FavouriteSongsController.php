@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FavouritesExceptions\FavouritesException;
+use App\Facades\AuthFacade;
 use App\Mappers\SongMapper;
 use App\Repository\Interfaces\IFavouriteSongsRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
@@ -20,7 +21,7 @@ class FavouriteSongsController extends Controller
 
     public function showFavouriteSongs(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $genresIds = $this->favouritesRepository->getFavouriteSongsIds($userId);
         $genres = $this->songRepository->getMultipleByIds($genresIds);
@@ -34,7 +35,7 @@ class FavouriteSongsController extends Controller
      */
     public function addToFavouriteSongs(int $artistId, int $albumId, int $songId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->addSongToFavourites($songId, $userId);
         $this->favouritesRepository->incrementSongLikes($songId);
@@ -47,7 +48,7 @@ class FavouriteSongsController extends Controller
      */
     public function deleteFromFavouriteSongs(int $artistId, int $albumId, int $songId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->deleteSongFromFavourites($songId, $userId);
         $this->favouritesRepository->decrementSongLikes($songId);

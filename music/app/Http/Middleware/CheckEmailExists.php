@@ -22,7 +22,11 @@ class CheckEmailExists
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $this->userRepository->getByEmail($request->input('email'));
+//        try {
+//            $this->userRepository->getByEmail($request->input('email'));
+//        } catch (DataAccessException $e) {
+//
+//        }
 
         return $next($request);
     }

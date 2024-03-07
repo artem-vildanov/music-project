@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Http\RequestModels\User;
+namespace App\Http\RequestModels\Auth;
 
-class CreateUserModel
+class SignupRequestModel
 {
     public string $name;
     public string $email;

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Facades\AuthFacade;
 use App\Repository\AlbumRepository;
 use App\Repository\ArtistRepository;
 use App\Repository\FavouritesRepository;

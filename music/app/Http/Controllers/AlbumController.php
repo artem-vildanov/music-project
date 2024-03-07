@@ -15,7 +15,7 @@ use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IGenreRepository;
 use App\Repository\Interfaces\ISongRepository;
 use App\Services\AlbumService;
-use http\Env\Response;
+use App\Services\CacheStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -32,7 +32,7 @@ class AlbumController extends Controller
     /**
      * @throws DataAccessException
      */
-    public function show(int $artistId, int $albumId): JsonResponse
+    public function show(int $albumId): JsonResponse
     {
         $album = $this->albumRepository->getById($albumId);
         $albumDto = $this->albumMapper->mapSingleAlbum($album);
@@ -40,7 +40,7 @@ class AlbumController extends Controller
         return response()->json($albumDto);
     }
 
-    public function showSongsInAlbum(int $artistId, int $albumId): JsonResponse
+    public function showSongsInAlbum(int $albumId): JsonResponse
     {
         $songsModelsGroup = $this->songRepository->getAllByAlbum($albumId);
         $songsDtoGroup = $this->songMapper->mapMultipleSongs($songsModelsGroup);
@@ -71,7 +71,7 @@ class AlbumController extends Controller
      * @throws DataAccessException
      * @throws MinioException
      */
-    public function update(int $artistId, int $albumId, UpdateAlbumRequest $request): JsonResponse
+    public function update(int $albumId, UpdateAlbumRequest $request): JsonResponse
     {
         $data = $request->body();
 
@@ -90,7 +90,7 @@ class AlbumController extends Controller
      * @throws DataAccessException
      * @throws MinioException
      */
-    public function delete(int $artistId, int $albumId): JsonResponse
+    public function delete(int $albumId): JsonResponse
     {
         $this->albumService->deleteAlbum($albumId);
         return response()->json();

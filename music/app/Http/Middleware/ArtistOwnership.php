@@ -3,15 +3,16 @@
 namespace App\Http\Middleware;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
-use App\Repository\Interfaces\IPlaylistRepository;
+use App\Facades\AuthFacade;
+use App\Repository\Interfaces\IArtistRepository;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class PlaylistOwnershipVerification
+class ArtistOwnership
 {
     public function __construct(
-        private readonly IPlaylistRepository $playlistRepository
+
     ) {}
 
     /**
@@ -19,14 +20,16 @@ class PlaylistOwnershipVerification
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $playlistId = $request->route('playlistId');
-        $playlist = $this->playlistRepository->getById($playlistId);
+        $requestArtistId = (int)$request->route('artistId');
 
-        if ($playlist->user_id !== auth()->id()) {
+        $authUser = AuthFacade::getAuthInfo();
+
+        if ($requestArtistId !== $authUser->artistId) {
             return response()->json([
-                'message' => 'not permitted to access this resource'
+                'error' => 'You are not permitted to access this resource.',
             ], 403);
         }
+
 
         return $next($request);
     }

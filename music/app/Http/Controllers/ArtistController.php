@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTransferObjects\AlbumDto;
 use App\DataTransferObjects\ArtistDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Exceptions\JwtException;
 use App\Exceptions\MinioException;
 use App\Http\Requests\Artist\CreateArtistRequest;
 use App\Http\Requests\Artist\UpdateArtistRequest;
@@ -14,16 +15,21 @@ use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IGenreRepository;
 use App\Services\ArtistService;
+use App\Services\TokenService;
+use App\Services\EncodeDecodeService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class ArtistController extends Controller
 {
     public function __construct(
-        private readonly ArtistService     $artistService,
-        private readonly IArtistRepository $artistRepository,
-        private readonly IAlbumRepository $albumRepository,
-        private readonly ArtistMapper $artistMapper,
-        private readonly AlbumMapper $albumMapper
+        private readonly ArtistService       $artistService,
+        private readonly IArtistRepository   $artistRepository,
+        private readonly IAlbumRepository    $albumRepository,
+        private readonly TokenService        $authService,
+        private readonly EncodeDecodeService $jwtService,
+        private readonly ArtistMapper        $artistMapper,
+        private readonly AlbumMapper         $albumMapper
     ) {}
 
     /**
@@ -48,6 +54,7 @@ class ArtistController extends Controller
     /**
      * @throws DataAccessException
      * @throws MinioException
+     * @throws JwtException
      */
     public function create(CreateArtistRequest $request): JsonResponse
     {
@@ -55,9 +62,13 @@ class ArtistController extends Controller
 
         $artistId = $this->artistService->saveArtist($data->name, $data->photo);
 
+        $token = $this->jwtService->getTokenFromRequest($request);
+        $newToken = $this->authService->refreshToken($token);
+
         return response()->json([
             'artistId' => $artistId,
-            'message' => 'new artist created successfully',
+            'message' => 'new artist created successfully, your access token has been refreshed',
+            'token' => $newToken
         ]);
     }
 
@@ -81,10 +92,18 @@ class ArtistController extends Controller
     /**
      * @throws DataAccessException
      * @throws MinioException
+     * @throws JwtException
      */
-    public function delete(int $artistId): JsonResponse
+    public function delete(int $artistId, Request $request): JsonResponse
     {
         $this->artistService->deleteArtist($artistId);
-        return response()->json();
+
+        $token = $this->jwtService->getTokenFromRequest($request);
+        $newToken = $this->authService->refreshToken($token);
+
+        return response()->json([
+            'message' => 'artist deleted successfully, your token has been refreshed',
+            'token' => $newToken
+        ]);
     }
 }

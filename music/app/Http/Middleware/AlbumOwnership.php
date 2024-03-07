@@ -2,33 +2,33 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class AlbumOwnershipVerification
+class AlbumOwnership
 {
     public function __construct(
-        private readonly IAlbumRepository  $albumRepository,
-        private readonly IArtistRepository $artistRepository,
+        private readonly IAlbumRepository $albumRepository
     ) {}
 
     /**
-     * Handle an incoming request.
-     *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @throws DataAccessException
      */
-
     public function handle(Request $request, Closure $next): Response
     {
-        $albumId = $request->route('albumId');
-        $album = $this->albumRepository->getById($albumId);
+        $requestAlbumId = (int)$request->route('albumId');
 
-        $userId = $this->artistRepository->getById($album->artist_id)->user_id;
+        // TODO сначала запрос к кэшу, затем запрос к бд если нет в кэше
+        $album = $this->albumRepository->getById($requestAlbumId);
 
-        if ($userId !== auth()->id()) {
+        $authUser = AuthFacade::getAuthInfo();
+
+        if ($album->artist_id !== $authUser->artistId) {
             return response()->json([
                 'error' => 'You are not permitted to access this resource.',
             ], 403);

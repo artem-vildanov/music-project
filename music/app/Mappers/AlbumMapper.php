@@ -4,6 +4,7 @@ namespace App\Mappers;
 
 use App\DataTransferObjects\AlbumDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
+use App\Facades\AuthFacade;
 use App\Models\Album;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
@@ -26,7 +27,8 @@ class AlbumMapper
      */
     public function mapMultipleAlbums(array $albums): array
     {
-        $favouriteAlbumsIdsGroup = $this->favouritesRepository->getFavouriteAlbumsIds(auth()->id());
+        $authUserId = AuthFacade::getUserId();
+        $favouriteAlbumsIdsGroup = $this->favouritesRepository->getFavouriteAlbumsIds($authUserId);
         $albumsDtoGroup = [];
 
         foreach($albums as $album) {
@@ -46,7 +48,8 @@ class AlbumMapper
     public function mapSingleAlbum(Album $album): AlbumDto
     {
         $albumDto = $this->map($album);
-        $albumDto->isFavourite = $this->favouritesRepository->checkAlbumIsFavourite(auth()->id(), $albumDto->id);
+        $authUserId = AuthFacade::getUserId();
+        $albumDto->isFavourite = $this->favouritesRepository->checkAlbumIsFavourite($authUserId, $albumDto->id);
 
         return $albumDto;
     }

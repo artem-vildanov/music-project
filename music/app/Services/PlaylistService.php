@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
+use App\Facades\AuthFacade;
 use App\Models\Playlist;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
@@ -28,7 +29,12 @@ class PlaylistService
         ?UploadedFile $playlistPhoto,
     ): int {
         $photoPath = $this->photoStorageService->savePlaylistPhoto($playlistPhoto);
-        return $this->playlistRepository->create($name, $photoPath, auth()->id());
+        $authUserId = AuthFacade::getUserId();
+        return $this->playlistRepository->create(
+            $name,
+            $photoPath,
+            $authUserId
+        );
     }
 
     /**

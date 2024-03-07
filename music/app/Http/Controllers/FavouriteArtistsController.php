@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exceptions\FavouritesExceptions\FavouritesException;
+use App\Facades\AuthFacade;
 use App\Mappers\ArtistMapper;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
@@ -23,7 +24,7 @@ class FavouriteArtistsController extends Controller
 
     public function showFavouriteArtists(): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $artistsIds = $this->favouritesRepository->getFavouriteArtistsIds($userId);
         $artists = $this->artistRepository->getMultipleByIds($artistsIds);
@@ -37,7 +38,7 @@ class FavouriteArtistsController extends Controller
      */
     public function addToFavouriteArtists(int $artistId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->addArtistToFavourites($artistId, $userId);
         $this->favouritesRepository->incrementArtistLikes($artistId);
@@ -50,7 +51,7 @@ class FavouriteArtistsController extends Controller
      */
     public function deleteFromFavouriteArtists(int $artistId): JsonResponse
     {
-        $userId = auth()->id();
+        $userId = AuthFacade::getUserId();
 
         $this->favouritesRepository->deleteArtistFromFavourites($artistId, $userId);
         $this->favouritesRepository->decrementArtistLikes($artistId);

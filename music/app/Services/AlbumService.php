@@ -6,6 +6,8 @@ namespace App\Services;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
+use App\Facades\AuthFacade;
+use App\Models\Album;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IGenreRepository;
@@ -22,6 +24,7 @@ class AlbumService
         private readonly IGenreRepository    $genreRepository,
         private readonly PhotoStorageService $photoStorageService,
         private readonly SongService         $songService,
+        private readonly CacheStorageService $cacheStorageService
     ) {}
 
     /**
@@ -36,7 +39,9 @@ class AlbumService
         $this->genreRepository->getById($genreId);
 
         $photoPath = $this->photoStorageService->saveAlbumPhoto($albumPhoto);
-        $artist = $this->artistRepository->getByUserId(auth()->id());
+
+        $authUserId = AuthFacade::getUserId();
+        $artist = $this->artistRepository->getByUserId($authUserId);
 
         return $this->albumRepository->create($name, $photoPath, $artist->id, $genreId);
     }
@@ -97,5 +102,30 @@ class AlbumService
         }
 
         $this->albumRepository->delete($albumId);
+    }
+
+    public function saveAlbumToCache(Album $album): void
+    {
+        $serializedAlbum = serialize($album);
+        $idInRedis = "album_{$album->id}";
+
+        $this->cacheStorageService->saveToCache($idInRedis, $serializedAlbum);
+    }
+
+    public function getAlbumFromCache(int $albumId): Album
+    {
+        $idInRedis = "album_{$albumId}";
+
+        $serializedAlbum = $this->cacheStorageService->getFromCache($idInRedis);
+        $album = unserialize($serializedAlbum);
+
+        dd($album);
+
+        return $album;
+    }
+
+    public function deleteAlbumFromCache(int $albumId)
+    {
+
     }
 }

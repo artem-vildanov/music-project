@@ -24,13 +24,13 @@ class CheckAlbumExists
 
         $album = $this->albumRepository->getById($albumId);
 
-        if ($album->artist_id !== $artistId) {
-            return response()->json([
-                'albumId' => $albumId,
-                'artistId' => $artistId,
-                'message' => 'artist does not have that album'
-            ], 400);
-        }
+//        if ($album->artist_id !== $artistId) {
+//            return response()->json([
+//                'albumId' => $albumId,
+//                'artistId' => $artistId,
+//                'message' => 'artist does not have that album'
+//            ], 400);
+//        }
 
         return $next($request);
     }

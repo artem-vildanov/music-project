@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use Closure;
@@ -12,7 +13,6 @@ class CheckAlbumStatus
 {
     public function __construct(
         private readonly IAlbumRepository  $albumRepository,
-        private readonly IArtistRepository $artistRepository,
     ) {}
 
 
@@ -24,11 +24,14 @@ class CheckAlbumStatus
     public function handle(Request $request, Closure $next): Response
     {
         $albumId = $request->route('albumId');
+
+        // TODO сначала запрос к кэшу, затем запрос к бд если нет в кэше
         $album = $this->albumRepository->getById($albumId);
-        $artist = $this->artistRepository->getById($album->artist_id);
+
+        $authUser = AuthFacade::getAuthInfo();
 
         if (
-            $artist->user_id !== auth()->id() and
+            $album->artist_id !== $authUser->artistId &&
             $album->status === 'private'
         ) {
             return response()->json([
