@@ -14,7 +14,7 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'api',
+        'guard' => 'web',
         'passwords' => 'users',
     ],
 
@@ -40,15 +40,11 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
-        'api' => [
-            'driver' => 'jwt',
-            'provider' => 'users',
-        ],
     ],
 
     /*
     |--------------------------------------------------------------------------
-    | User Providers
+    | Auth Providers
     |--------------------------------------------------------------------------
     |
     | All authentication drivers have a user provider. This defines how the

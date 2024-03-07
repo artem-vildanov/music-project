@@ -4,7 +4,7 @@ volumes:
   db-mysql:
   minio:
   api-server-storage:
-#  redis:
+  redis:
 
 networks:
   c4_network:
@@ -43,7 +43,7 @@ services:
       - ":9000"
     extra_hosts:
       - "db.music.local:172.15.0.4"
-#      - "redis.music.local:172.15.0.5"
+      - "redis.music.local:172.15.0.5"
       - "host.docker.internal:host-gateway"
     volumes:
         - ./:/var/www/api-server
@@ -83,14 +83,14 @@ services:
         MINIO_ROOT_PASSWORD: secret123
     command: server --address :9005 --console-address :9006 /data
 
-#  redis:
-#    image: redis:7.2
-#    restart: always
-#    container_name: redis
-#    networks:
-#      c4_network:
-#        ipv4_address: 172.15.0.5
-#    ports:
-#      - "6379:6379"
-#    volumes:
-#      - redis:/data
+  redis:
+    image: redis:7.2
+    restart: always
+    container_name: redis
+    networks:
+      c4_network:
+        ipv4_address: 172.15.0.5
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis:/data

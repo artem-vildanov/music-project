@@ -11,6 +11,8 @@ use App\Http\Controllers\GenreController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\SongController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\AlbumOwnership;
+use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CheckAlbumExists;
 use App\Http\Middleware\CheckAlbumIsFavourite;
 use App\Http\Middleware\CheckAlbumStatus;
@@ -24,9 +26,8 @@ use App\Http\Middleware\CheckSongInPlaylist;
 use App\Http\Middleware\CheckSongIsFavourite;
 use App\Http\Middleware\ForArtistPermitted;
 use App\Http\Middleware\ForBaseUserPermitted;
-use App\Http\Middleware\AlbumOwnershipVerification;
-use App\Http\Middleware\OwnershipVerification;
-use App\Http\Middleware\PlaylistOwnershipVerification;
+use App\Http\Middleware\ArtistOwnership;
+use App\Http\Middleware\PlaylistOwnership;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,94 +42,94 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::group(['prefix' => 'artist', 'middleware' => 'jwt.auth'], function () {
-    Route::post('/createArtist', [ArtistController::class, 'create'])->middleware(ForBaseUserPermitted::class);
+Route::group(['prefix' => 'artists', 'middleware' => Authenticate::class], function () {
+    Route::post('/create-artist', [ArtistController::class, 'create'])->middleware(ForBaseUserPermitted::class);
 
     Route::group(['prefix' => '{artistId}', 'middleware' => [CheckArtistExists::class]], function() {
-        Route::get('', [ArtistController::class, 'show']);
-        Route::get('albumsMadeByArtist', [ArtistController::class, 'showAlbumsMadeByArtist']);
-        Route::put('addToFavourites', [FavouriteArtistsController::class, 'addToFavouriteArtists'])->middleware(CheckArtistIsFavourite::class);
-        Route::put('deleteFromFavourites', [FavouriteArtistsController::class, 'deleteFromFavouriteArtists']);
+        Route::get('', [ArtistController::class, 'show'])->withoutMiddleware([CheckArtistExists::class]);
 
-        Route::group(['middleware' => OwnershipVerification::class], function() {
-            Route::post('updateArtist', [ArtistController::class, 'update']);
-            Route::delete('deleteArtist', [ArtistController::class, 'delete']);
-        });
+        Route::put('add-to-favourites', [FavouriteArtistsController::class, 'addToFavouriteArtists'])->middleware(CheckArtistIsFavourite::class);
+        Route::put('delete-from-favourites', [FavouriteArtistsController::class, 'deleteFromFavouriteArtists']);
 
-        Route::group(['prefix' => 'album'], function () {
-            Route::post('/createAlbum', [AlbumController::class, 'create'])->middleware(ForArtistPermitted::class);
-
-            Route::group(['prefix' => '{albumId}', 'middleware' => [CheckAlbumExists::class, CheckAlbumStatus::class]], function () {
-                Route::get('', [AlbumController::class, 'show']);
-                Route::get('albumSongs', [AlbumController::class, 'showSongsInAlbum']);
-                Route::put('addToFavourites', [FavouriteAlbumsController::class, 'addToFavouriteAlbums'])->middleware(CheckAlbumIsFavourite::class);
-                Route::put('deleteFromFavourites', [FavouriteAlbumsController::class, 'deleteFromFavouriteAlbums']);
-
-                Route::group(['middleware' => [ForArtistPermitted::class, OwnershipVerification::class]], function() {
-                    Route::delete('deleteAlbum', [AlbumController::class, 'delete']);
-                    Route::post('updateAlbum', [AlbumController::class, 'update']);
-                });
-
-                Route::group(['prefix' => 'song'], function () {
-                    Route::post('createSong', [SongController::class, 'create'])->middleware([ForArtistPermitted::class, OwnershipVerification::class]);
-
-                    Route::group(['prefix' => '{songId}', 'middleware' => CheckSongExists::class], function () {
-                        Route::get('', [SongController::class, 'show']);
-                        Route::put('addToFavourites', [FavouriteSongsController::class, 'addToFavouriteSongs'])->middleware(CheckSongIsFavourite::class);
-                        Route::put('deleteFromFavourites', [FavouriteSongsController::class, 'deleteFromFavouriteSongs']);
-
-                        Route::group(['middleware' => PlaylistOwnershipVerification::class], function () {
-                            Route::put('addToPlaylist/{playlistId}', [PlaylistController::class, 'addSongToPlaylist'])->middleware(CheckSongInPlaylist::class);
-                            Route::put('deleteFromPlaylist/{playlistId}', [PlaylistController::class, 'deleteSongsFromPlaylist']);
-                        });
-
-                        Route::group(['middleware' => [ForArtistPermitted::class, OwnershipVerification::class]], function() {
-                            Route::post('/updateSong', [SongController::class, 'update']);
-                            Route::delete('/deleteSong', [SongController::class, 'delete']);
-                        });
-                    });
-                });
+        Route::group(['middleware' => ArtistOwnership::class], function() {
+            Route::post('update-artist', [ArtistController::class, 'update']);
+            Route::delete('delete-artist', [ArtistController::class, 'delete']);
+        })->withoutMiddleware([CheckArtistExists::class]);;
+    });
+});
 
 
+Route::group(['prefix' => 'albums'], function () {
+    Route::get('created-by-artist/{artistId}', [ArtistController::class, 'showAlbumsMadeByArtist']);
+    Route::post('/create-album', [AlbumController::class, 'create'])->middleware(ForArtistPermitted::class);
+
+    Route::group(['prefix' => '{albumId}', 'middleware' => [CheckAlbumStatus::class]], function () {
+        Route::get('', [AlbumController::class, 'show']);
+
+        Route::put('add-to-favourites', [FavouriteAlbumsController::class, 'addToFavouriteAlbums'])->middleware(CheckAlbumIsFavourite::class);
+        Route::put('delete-from-favourites', [FavouriteAlbumsController::class, 'deleteFromFavouriteAlbums']);
+
+        Route::group(['middleware' => [AlbumOwnership::class]], function() {
+            Route::delete('delete-album', [AlbumController::class, 'delete']);
+            Route::post('update-album', [AlbumController::class, 'update']);
+        })->withoutMiddleware(CheckAlbumStatus::class);
+
+        Route::group(['prefix' => 'songs'], function () {
+            Route::post('create-song', [SongController::class, 'create'])->middleware([ArtistOwnership::class]);
+            Route::get('album-songs', [AlbumController::class, 'showSongsInAlbum']);
+            Route::group(['prefix' => '{songId}', 'middleware' => CheckSongExists::class], function () {
+                Route::get('', [SongController::class, 'show'])->withoutMiddleware(CheckSongExists::class);
+                Route::put('add-to-favourites', [FavouriteSongsController::class, 'addToFavouriteSongs'])->middleware(CheckSongIsFavourite::class);
+                Route::put('delete-from-favourites', [FavouriteSongsController::class, 'deleteFromFavouriteSongs']);
+
+                Route::group(['middleware' => PlaylistOwnership::class], function () {
+                    Route::put('add-to-playlist/{playlistId}', [PlaylistController::class, 'addSongToPlaylist'])->middleware(CheckSongInPlaylist::class);
+                    Route::put('delete-from-playlist/{playlistId}', [PlaylistController::class, 'deleteSongsFromPlaylist']);
+                })->withoutMiddleware(CheckSongExists::class);
+
+                Route::group(['middleware' => [AlbumOwnership::class]], function() {
+                    Route::post('/update-song', [SongController::class, 'update']);
+                    Route::delete('/delete-song', [SongController::class, 'delete']);
+                })->withoutMiddleware(CheckAlbumStatus::class);;
             });
         });
     });
 });
 
-Route::group(['prefix' => 'genre', 'middleware' => 'jwt.auth'], function() {
+Route::group(['prefix' => 'genre', 'middleware' => Authenticate::class], function() {
     Route::get('/all', [GenreController::class, 'showAll']);
 
     Route::group(['prefix' => '{genreId}', 'middleware' => CheckGenreExists::class], function() {
         Route::get('', [GenreController::class, 'show']);
-        Route::put('addToFavourites', [FavouriteGenresController::class, 'addToFavouriteGenres'])->middleware(CheckGenreIsFavourite::class);
-        Route::put('deleteFromFavourites', [FavouriteGenresController::class, 'deleteFromFavouriteGenres']);
-        Route::get('albumsByGenre', [GenreController::class, 'albumsWithGenre']);
+        Route::put('add-to-favourites', [FavouriteGenresController::class, 'addToFavouriteGenres'])->middleware(CheckGenreIsFavourite::class);
+        Route::put('delete-from-favourites', [FavouriteGenresController::class, 'deleteFromFavouriteGenres']);
+        Route::get('albums-by-genre', [GenreController::class, 'albumsWithGenre']);
     });
 });
 
-Route::group(['prefix' => 'user'], function () {
-    Route::post('/signup', [UserController::class, 'signup'])->middleware(CheckEmailExists::class);
-    Route::group(['middleware' => 'jwt.auth'], function() {
-        Route::get('/favouriteAlbums', [FavouriteAlbumsController::class, 'showFavouriteAlbums']);
-        Route::get('/favouriteSongs', [FavouriteSongsController::class, 'showFavouriteSongs']);
-        Route::get('/favouriteArtists', [FavouriteArtistsController::class, 'showFavouriteArtists']);
-        Route::get('/favouriteGenres', [FavouriteGenresController::class, 'showFavouriteGenres']);
-        Route::group(['prefix' => 'playlist'], function () {
-            Route::get('userPlaylists', [PlaylistController::class, 'showUserPlaylists']);
-            Route::post('createPlaylist', [PlaylistController::class, 'create']);
-            Route::group(['prefix' => '{playlistId}', 'middleware' => PlaylistOwnershipVerification::class], function () {
-                Route::get('', [PlaylistController::class, 'show']);
-                Route::get('playlistSongs', [PlaylistController::class, 'showSongsInPlaylist']);
-                Route::post('updatePlaylist', [PlaylistController::class, 'update']);
-                Route::delete('deletePlaylist', [PlaylistController::class, 'delete']);
-            });
+Route::group(['prefix' => 'user', 'middleware' => Authenticate::class], function () {
+
+    Route::get('/favourite-albums', [FavouriteAlbumsController::class, 'showFavouriteAlbums']);
+    Route::get('/favourite-songs', [FavouriteSongsController::class, 'showFavouriteSongs']);
+    Route::get('/favourite-artists', [FavouriteArtistsController::class, 'showFavouriteArtists']);
+    Route::get('/favourite-genres', [FavouriteGenresController::class, 'showFavouriteGenres']);
+    Route::group(['prefix' => 'playlists'], function () {
+        Route::get('user-playlists', [PlaylistController::class, 'showUserPlaylists']);
+        Route::post('create-playlist', [PlaylistController::class, 'create']);
+        Route::group(['prefix' => '{playlistId}', 'middleware' => PlaylistOwnership::class], function () {
+            Route::get('', [PlaylistController::class, 'show']);
+            Route::get('playlist-songs', [PlaylistController::class, 'showSongsInPlaylist']);
+            Route::post('update-playlist', [PlaylistController::class, 'update']);
+            Route::delete('delete-playlist', [PlaylistController::class, 'delete']);
         });
     });
+
 });
 
-Route::group(['prefix' => 'auth', 'middleware' => 'api'], function () {
+Route::group(['prefix' => 'auth'], function () {
     Route::post('login', [AuthController::class, 'login']);
-    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('signup', [AuthController::class, 'signup']);
+    Route::post('logout', [AuthController::class, 'logout'])->middleware(Authenticate::class);
     Route::post('refresh', [AuthController::class, 'refresh']);
-    Route::post('me', [AuthController::class, 'me']);
+    Route::post('me', [AuthController::class, 'me'])->middleware(Authenticate::class);
 });
