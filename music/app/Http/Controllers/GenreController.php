@@ -9,6 +9,7 @@ use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IGenreRepository;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\AlbumService;
 
 class GenreController extends Controller
 {

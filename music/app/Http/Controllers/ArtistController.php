@@ -26,8 +26,7 @@ class ArtistController extends Controller
         private readonly ArtistService       $artistService,
         private readonly IArtistRepository   $artistRepository,
         private readonly IAlbumRepository    $albumRepository,
-        private readonly TokenService        $authService,
-        private readonly EncodeDecodeService $jwtService,
+        private readonly TokenService        $tokenService,
         private readonly ArtistMapper        $artistMapper,
         private readonly AlbumMapper         $albumMapper
     ) {}
@@ -37,6 +36,7 @@ class ArtistController extends Controller
      */
     public function show(int $artistId): JsonResponse
     {
+        dd($artistId);
         $artist = $this->artistRepository->getById($artistId);
         $artistDto = $this->artistMapper->mapSingleArtist($artist);
 
@@ -62,8 +62,8 @@ class ArtistController extends Controller
 
         $artistId = $this->artistService->saveArtist($data->name, $data->photo);
 
-        $token = $this->jwtService->getTokenFromRequest($request);
-        $newToken = $this->authService->refreshToken($token);
+        $token = $this->tokenService->getTokenFromRequest($request);
+        $newToken = $this->tokenService->refreshToken($token);
 
         return response()->json([
             'artistId' => $artistId,
@@ -98,8 +98,8 @@ class ArtistController extends Controller
     {
         $this->artistService->deleteArtist($artistId);
 
-        $token = $this->jwtService->getTokenFromRequest($request);
-        $newToken = $this->authService->refreshToken($token);
+        $token = $this->tokenService->getTokenFromRequest($request);
+        $newToken = $this->tokenService->refreshToken($token);
 
         return response()->json([
             'message' => 'artist deleted successfully, your token has been refreshed',

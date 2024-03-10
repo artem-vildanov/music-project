@@ -13,7 +13,7 @@ class SongService
     public function __construct(
         private readonly AudioStorageService $storageService,
         private readonly ISongRepository     $songRepository,
-        private readonly IAlbumRepository    $albumRepository,
+        private readonly AlbumService $albumService,
     ) {
     }
 
@@ -23,7 +23,7 @@ class SongService
      */
     public function saveSong(string $name, UploadedFile $musicFile, int $albumId): int
     {
-        $album = $this->albumRepository->getById($albumId);
+        $album = $this->albumService->getAlbum($albumId);
 
         $musicPath = $this->storageService->saveAudio($album->cdn_folder_id, $musicFile);
 

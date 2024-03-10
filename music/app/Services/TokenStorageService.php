@@ -8,37 +8,37 @@ use Predis\Client;
 
 class TokenStorageService
 {
-    private Client $redis;
-    public function __construct()
-    {
-        $this->redis = RedisConnection::makeConnection();
-    }
+    public function __construct(
+        private readonly RedisStorageService $redisStorageService,
+    ) {}
 
-    public function save(string $token, int $userId): void
+    public function saveToken(string $token, int $userId): void
     {
         $timeToRefresh = (int)config('jwt.ttr');
-        $this->redis->set($token, $userId, 'EX', $timeToRefresh);
+        $this->redisStorageService->save($token, (string)$userId, $timeToRefresh);
     }
 
     /**
      * @throws RedisException
      */
-    public function delete(string $token): void
+    public function deleteToken(string $token): void
     {
-        if ($this->redis->del($token) === 0) {
-            throw RedisException::failedToDelete();
+        if (!$this->redisStorageService->delete($token)) {
+            throw RedisException::failedToDeleteToken();
         }
     }
 
     /**
      * @throws RedisException
      */
-    public function find(string $token): string
+    public function findToken(string $token): string
     {
-        $value = $this->redis->get($token);
-        if (!$value) {
+        $userId = $this->redisStorageService->find($token);
+
+        if (!$token) {
             throw RedisException::failedToFindToken();
         }
-        return $value;
+        
+        return (string)$userId;
     }
 }

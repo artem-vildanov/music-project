@@ -32,6 +32,6 @@ class GenreRepository implements IGenreRepository
 
     public function getAll(): array
     {
-        return Genre::all()->toArray();
+        return Genre::query()->get()->all();
     }
 }

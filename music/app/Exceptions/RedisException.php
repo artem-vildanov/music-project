@@ -4,7 +4,7 @@ namespace App\Exceptions;
 
 class RedisException extends \Exception
 {
-    public static function failedToDelete(): RedisException
+    public static function failedToDeleteToken(): RedisException
     {
         return new self("failed to delete token", 500);
     }

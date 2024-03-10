@@ -11,12 +11,13 @@ use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IFavouritesRepository;
 use App\Repository\Interfaces\IPlaylistRepository;
 use App\Repository\Interfaces\IPlaylistSongsRepository;
+use App\Services\AlbumService;
 
 class SongMapper
 {
     public function __construct(
         private readonly IArtistRepository        $artistRepository,
-        private readonly IAlbumRepository         $albumRepository,
+        private readonly AlbumService $albumService,
         private readonly IFavouritesRepository    $favouritesRepository,
         private readonly IPlaylistRepository      $playlistRepository,
         private readonly IPlaylistSongsRepository $playlistSongsRepository,
@@ -64,7 +65,7 @@ class SongMapper
         $songDto->photoPath = $song->photo_path;
         $songDto->musicPath = $song->music_path;
         $songDto->albumId = $song->album_id;
-        $songDto->albumName = $this->albumRepository->getById($song->album_id)->name;
+        $songDto->albumName = $this->albumService->getAlbum($song->album_id)->name;
         $songDto->artistId = $song->artist_id;
         $songDto->artistName = $this->artistRepository->getById($songDto->artistId)->name;
         $songDto->isFavourite = $this->checkSongIsFavourite($songDto->id);

@@ -11,33 +11,23 @@ use Predis\PredisException;
 
 class CacheStorageService
 {
-    private Client $redis;
-
-    public function __construct()
-    {
-        $this->redis = RedisConnection::makeConnection();
-    }
+    public function __construct(
+        private readonly RedisStorageService $redisStorageService
+    ) {}
 
     public function saveToCache(string $objectId, string $serializedObject): void
     {
-        $EXPIRE_RESOLUTION = "EX";
-        $TTL_IN_SEC = 60;
-        $this->redis->set($objectId, $serializedObject, $EXPIRE_RESOLUTION, $TTL_IN_SEC);
+        $timeToLive = 60;
+        $this->redisStorageService->save($objectId, $serializedObject, $timeToLive);
     }
 
-    public function getFromCache(string $objectId): string
+    public function getFromCache(string $objectId): ?string
     {
-        try {
-            $objectSerialized = $this->redis->get($objectId);
-        } catch (PredisException $exception) {
-            dd($exception);
-        }
-
-        return $objectSerialized;
+        return $this->redisStorageService->find($objectId);
     }
 
-    public function deleteFromCache(string $objectId)
+    public function deleteFromCache(string $objectId): void
     {
-
+        $this->redisStorageService->delete($objectId);
     }
 }

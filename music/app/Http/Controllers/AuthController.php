@@ -4,18 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\JwtException;
-use App\Exceptions\RedisException;
 use App\Facades\AuthFacade;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\SignupRequest;
-use App\Models\User;
 use App\Repository\UserRepository;
 use App\Services\TokenService;
-use App\Services\EncodeDecodeService;
-use App\Services\TokenStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller

@@ -58,6 +58,7 @@ class AlbumService
         ?int $genreId
     ): void {
 
+        //$album = $this->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
         $updatedAlbum = $album;
 
@@ -84,6 +85,8 @@ class AlbumService
             $updatedAlbum->photo_path,
             $updatedAlbum->genre_id
         );
+
+        //$this->deleteAlbumFromCache($albumId);
     }
 
     /**
@@ -92,6 +95,7 @@ class AlbumService
      */
     public function deleteAlbum(int $albumId): void
     {
+        //$album = $this->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
 
         $this->photoStorageService->deletePhoto($album->photo_path);
@@ -102,30 +106,46 @@ class AlbumService
         }
 
         $this->albumRepository->delete($albumId);
+        //$this->deleteAlbumFromCache($albumId);
     }
 
-    public function saveAlbumToCache(Album $album): void
-    {
-        $serializedAlbum = serialize($album);
-        $idInRedis = "album_{$album->id}";
+    // public function getAlbum(int $albumId): Album
+    // {
+    //     $album = $this->getAlbumFromCache($albumId);
 
-        $this->cacheStorageService->saveToCache($idInRedis, $serializedAlbum);
-    }
+    //     if (!$album) {
+    //         $album = $this->albumRepository->getById($albumId);
+    //         $this->saveAlbumToCache($album);
+    //     }
 
-    public function getAlbumFromCache(int $albumId): Album
-    {
-        $idInRedis = "album_{$albumId}";
+    //     return $album;
+    // }
 
-        $serializedAlbum = $this->cacheStorageService->getFromCache($idInRedis);
-        $album = unserialize($serializedAlbum);
+    // private function saveAlbumToCache(Album $album): void
+    // {
+    //     $serializedAlbum = serialize($album);
+    //     $idInRedis = "album_{$album->id}";
 
-        dd($album);
+    //     $this->cacheStorageService->saveToCache($idInRedis, $serializedAlbum);
+    // }
 
-        return $album;
-    }
+    // private function getAlbumFromCache(int $albumId): ?Album
+    // {
+    //     $idInRedis = "album_{$albumId}";
 
-    public function deleteAlbumFromCache(int $albumId)
-    {
+    //     $serializedAlbum = $this->cacheStorageService->getFromCache($idInRedis);
+    //     if (!$serializedAlbum) {
+    //         return null;
+    //     }
 
-    }
+    //     $album = unserialize($serializedAlbum);
+
+    //     return $album;
+    // }
+
+    // private function deleteAlbumFromCache(int $albumId): void
+    // {
+    //     $idInRedis = "album_{$albumId}";
+    //     $this->cacheStorageService->deleteFromCache($idInRedis);
+    // }
 }

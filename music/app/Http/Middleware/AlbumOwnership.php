@@ -6,6 +6,7 @@ use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
+use App\Services\AlbumService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AlbumOwnership
 {
     public function __construct(
-        private readonly IAlbumRepository $albumRepository
+        private readonly AlbumService $albumService
     ) {}
 
     /**
@@ -23,8 +24,7 @@ class AlbumOwnership
     {
         $requestAlbumId = (int)$request->route('albumId');
 
-        // TODO сначала запрос к кэшу, затем запрос к бд если нет в кэше
-        $album = $this->albumRepository->getById($requestAlbumId);
+        $album = $this->albumService->getAlbum($requestAlbumId);
 
         $authUser = AuthFacade::getAuthInfo();
 

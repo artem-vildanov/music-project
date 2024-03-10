@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
+use App\Services\AlbumService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -12,7 +13,7 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckAlbumStatus
 {
     public function __construct(
-        private readonly IAlbumRepository  $albumRepository,
+        private readonly AlbumService $albumService,
     ) {}
 
 
@@ -25,8 +26,7 @@ class CheckAlbumStatus
     {
         $albumId = $request->route('albumId');
 
-        // TODO сначала запрос к кэшу, затем запрос к бд если нет в кэше
-        $album = $this->albumRepository->getById($albumId);
+        $album = $this->albumService->getAlbum($albumId);
 
         $authUser = AuthFacade::getAuthInfo();
 

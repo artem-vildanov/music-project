@@ -19,7 +19,7 @@ class TokenService
 {
     public function __construct(
         private readonly EncodeDecodeService $encodeDecodeService,
-        private readonly TokenStorageService $redisStorageService,
+        private readonly TokenStorageService $tokenStorageService,
         private readonly IUserRepository     $userRepository,
         private readonly IArtistRepository   $artistRepository
     ) {}
@@ -55,7 +55,7 @@ class TokenService
         $model = $this->createTokenPayload($user);
         $jwt = $this->encodeDecodeService->encode($model);
 
-        $this->redisStorageService->save($jwt, $user->id);
+        $this->tokenStorageService->saveToken($jwt, $user->id);
 
         return $jwt;
     }
@@ -90,7 +90,7 @@ class TokenService
     {
         try {
             $tokenPayload = $this->encodeDecodeService->decode($token);
-            $this->redisStorageService->find($token);
+            $this->tokenStorageService->findToken($token);
             $this->checkIfExpired($tokenPayload);
             $this->checkIfRefreshable($tokenPayload);
         } catch (RedisException $e) {
@@ -151,7 +151,7 @@ class TokenService
     private function refreshTokenByPayload(string $token, TokenPayloadModel $tokenPayload): string
     {
         try {
-            $this->redisStorageService->delete($token);
+            $this->tokenStorageService->deleteToken($token);
         } catch (RedisException $e) {
             throw JwtException::invalidToken();
         }
@@ -167,7 +167,7 @@ class TokenService
     public function logoutByToken(string $token): void
     {
         try {
-            $this->redisStorageService->delete($token);
+            $this->tokenStorageService->deleteToken($token);
         } catch (RedisException $e) {
             throw JwtException::invalidToken();
         }

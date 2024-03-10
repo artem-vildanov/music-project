@@ -34,7 +34,9 @@ class AlbumController extends Controller
      */
     public function show(int $albumId): JsonResponse
     {
+        //$album = $this->albumService->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
+
         $albumDto = $this->albumMapper->mapSingleAlbum($album);
 
         return response()->json($albumDto);
