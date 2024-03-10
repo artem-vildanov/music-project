@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Services\FilesStorageServices;
 
 use App\Exceptions\MinioException;
 use Aws\S3\S3Client;

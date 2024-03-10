@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\SongDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
 use App\Http\Requests\Album\CreateAlbumRequest;
@@ -11,20 +9,17 @@ use App\Http\Requests\Album\UpdateAlbumRequest;
 use App\Mappers\AlbumMapper;
 use App\Mappers\SongMapper;
 use App\Repository\Interfaces\IAlbumRepository;
-use App\Repository\Interfaces\IArtistRepository;
-use App\Repository\Interfaces\IGenreRepository;
 use App\Repository\Interfaces\ISongRepository;
-use App\Services\AlbumService;
-use App\Services\CacheStorageService;
+use App\Services\CacheServices\AlbumCacheService;
+use App\Services\DomainServices\AlbumService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class AlbumController extends Controller
 {
     public function __construct(
-        private readonly IAlbumRepository $albumRepository,
         private readonly ISongRepository $songRepository,
         private readonly AlbumService $albumService,
+        private readonly IAlbumRepository $albumRepository,
         private readonly AlbumMapper $albumMapper,
         private readonly SongMapper $songMapper,
     ) {}
@@ -34,14 +29,15 @@ class AlbumController extends Controller
      */
     public function show(int $albumId): JsonResponse
     {
-        //$album = $this->albumService->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
-
         $albumDto = $this->albumMapper->mapSingleAlbum($album);
 
         return response()->json($albumDto);
     }
 
+    /**
+     * @throws DataAccessException
+     */
     public function showSongsInAlbum(int $albumId): JsonResponse
     {
         $songsModelsGroup = $this->songRepository->getAllByAlbum($albumId);

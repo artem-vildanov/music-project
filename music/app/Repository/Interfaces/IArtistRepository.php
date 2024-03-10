@@ -29,20 +29,6 @@ interface IArtistRepository
     public function getByUserId(int $userId): Artist;
 
     /**
-     * поиск любимых артистов пользователя
-     * @param $userId
-     * @return array
-     */
-    public function getUserFavourites($userId): array;
-
-    /**
-     * @param $genreId
-     * @return array
-     */
-    public function getAllByGenre($genreId): array;
-
-
-    /**
      * @param string $name
      * @param string $photoPath
      * @param int $userId

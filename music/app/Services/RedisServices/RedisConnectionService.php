@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Utils;
+namespace App\Services\RedisServices;
 
 use Predis\Client;
 
-class RedisConnection
+class RedisConnectionService
 {
     private static ?Client $redisClient = null;
 

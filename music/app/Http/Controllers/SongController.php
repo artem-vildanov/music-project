@@ -2,15 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\SongDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
 use App\Http\Requests\Song\CreateSongRequest;
 use App\Http\Requests\Song\UpdateSongRequest;
 use App\Mappers\SongMapper;
-use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\ISongRepository;
-use App\Services\SongService;
+use App\Services\DomainServices\SongService;
 use Illuminate\Http\JsonResponse;
 
 class SongController extends Controller

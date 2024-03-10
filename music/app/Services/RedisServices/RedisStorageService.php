@@ -1,9 +1,7 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\RedisServices;
 
-use App\Exceptions\RedisException;
-use App\Utils\RedisConnection;
 use Predis\Client;
 
 class RedisStorageService
@@ -11,7 +9,7 @@ class RedisStorageService
     private Client $redis;
     public function __construct()
     {
-        $this->redis = RedisConnection::makeConnection();
+        $this->redis = RedisConnectionService::makeConnection();
     }
 
     public function save(string $key, string $value, int $timeToLive): void

@@ -2,19 +2,14 @@
 
 declare(strict_types=1);
 
-namespace App\Services;
+namespace App\Services\JwtServices;
 
 use App\Exceptions\JwtException;
-use App\Exceptions\RedisException;
 use App\Mappers\TokenPayloadMapper;
 use App\Models\TokenPayloadModel;
-use App\Models\User;
-use Carbon\Carbon;
 use Exception;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-use Illuminate\Http\Request;
-use stdClass;
 
 
 class EncodeDecodeService

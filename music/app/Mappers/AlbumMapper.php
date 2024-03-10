@@ -33,7 +33,7 @@ class AlbumMapper
 
         foreach($albums as $album) {
             $albumDto = $this->map($album);
-            $albumDto = in_array($albumDto->id, $favouriteAlbumsIdsGroup);
+            $albumDto->isFavourite = in_array($albumDto->id, $favouriteAlbumsIdsGroup);
             $albumsDtoGroup[] = $albumDto;
         }
 

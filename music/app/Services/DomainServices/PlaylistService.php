@@ -1,16 +1,12 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\DomainServices;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
 use App\Facades\AuthFacade;
-use App\Models\Playlist;
-use App\Repository\Interfaces\IAlbumRepository;
-use App\Repository\Interfaces\IArtistRepository;
-use App\Repository\Interfaces\IGenreRepository;
 use App\Repository\Interfaces\IPlaylistRepository;
-use App\Repository\Interfaces\ISongRepository;
+use App\Services\FilesStorageServices\PhotoStorageService;
 use Illuminate\Http\UploadedFile;
 
 class PlaylistService

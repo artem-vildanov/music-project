@@ -25,8 +25,6 @@ interface IAlbumRepository {
      */
     public function getAllByArtist(int $artistId): array;
 
-    public function getAllByUser(int $userId);
-
     public function getAllByGenre(int $genreId);
 
     /**

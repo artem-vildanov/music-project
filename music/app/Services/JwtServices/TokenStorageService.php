@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\JwtServices;
 
 use App\Exceptions\RedisException;
-use App\Utils\RedisConnection;
-use Predis\Client;
+use App\Services\RedisServices\RedisStorageService;
 
 class TokenStorageService
 {
@@ -38,7 +37,7 @@ class TokenStorageService
         if (!$token) {
             throw RedisException::failedToFindToken();
         }
-        
+
         return (string)$userId;
     }
 }

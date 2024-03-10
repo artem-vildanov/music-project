@@ -1,8 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
-namespace App\Services;
+namespace App\Services\DomainServices;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
@@ -12,6 +10,9 @@ use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IGenreRepository;
 use App\Repository\Interfaces\ISongRepository;
+use App\Services\CacheServices\AlbumCacheService;
+use App\Services\CacheServices\CacheStorageService;
+use App\Services\FilesStorageServices\PhotoStorageService;
 use Illuminate\Http\UploadedFile;
 
 class AlbumService
@@ -24,7 +25,6 @@ class AlbumService
         private readonly IGenreRepository    $genreRepository,
         private readonly PhotoStorageService $photoStorageService,
         private readonly SongService         $songService,
-        private readonly CacheStorageService $cacheStorageService
     ) {}
 
     /**
@@ -58,7 +58,6 @@ class AlbumService
         ?int $genreId
     ): void {
 
-        //$album = $this->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
         $updatedAlbum = $album;
 
@@ -85,8 +84,6 @@ class AlbumService
             $updatedAlbum->photo_path,
             $updatedAlbum->genre_id
         );
-
-        //$this->deleteAlbumFromCache($albumId);
     }
 
     /**
@@ -95,7 +92,6 @@ class AlbumService
      */
     public function deleteAlbum(int $albumId): void
     {
-        //$album = $this->getAlbum($albumId);
         $album = $this->albumRepository->getById($albumId);
 
         $this->photoStorageService->deletePhoto($album->photo_path);
@@ -106,46 +102,6 @@ class AlbumService
         }
 
         $this->albumRepository->delete($albumId);
-        //$this->deleteAlbumFromCache($albumId);
+
     }
-
-    // public function getAlbum(int $albumId): Album
-    // {
-    //     $album = $this->getAlbumFromCache($albumId);
-
-    //     if (!$album) {
-    //         $album = $this->albumRepository->getById($albumId);
-    //         $this->saveAlbumToCache($album);
-    //     }
-
-    //     return $album;
-    // }
-
-    // private function saveAlbumToCache(Album $album): void
-    // {
-    //     $serializedAlbum = serialize($album);
-    //     $idInRedis = "album_{$album->id}";
-
-    //     $this->cacheStorageService->saveToCache($idInRedis, $serializedAlbum);
-    // }
-
-    // private function getAlbumFromCache(int $albumId): ?Album
-    // {
-    //     $idInRedis = "album_{$albumId}";
-
-    //     $serializedAlbum = $this->cacheStorageService->getFromCache($idInRedis);
-    //     if (!$serializedAlbum) {
-    //         return null;
-    //     }
-
-    //     $album = unserialize($serializedAlbum);
-
-    //     return $album;
-    // }
-
-    // private function deleteAlbumFromCache(int $albumId): void
-    // {
-    //     $idInRedis = "album_{$albumId}";
-    //     $this->cacheStorageService->deleteFromCache($idInRedis);
-    // }
 }

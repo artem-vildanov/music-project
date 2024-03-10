@@ -1,13 +1,8 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\CacheServices;
 
-use App\Exceptions\RedisException;
-use App\Models\Album;
-use App\Utils\RedisConnection;
-use Exception;
-use Predis\Client;
-use Predis\PredisException;
+use App\Services\RedisServices\RedisStorageService;
 
 class CacheStorageService
 {

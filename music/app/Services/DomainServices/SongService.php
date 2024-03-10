@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\DomainServices;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\MinioException;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\ISongRepository;
+use App\Services\CacheServices\AlbumCacheService;
+use App\Services\FilesStorageServices\AudioStorageService;
 use Illuminate\Http\UploadedFile;
 
 class SongService
@@ -13,7 +15,7 @@ class SongService
     public function __construct(
         private readonly AudioStorageService $storageService,
         private readonly ISongRepository     $songRepository,
-        private readonly AlbumService $albumService,
+        private readonly IAlbumRepository $albumRepository,
     ) {
     }
 
@@ -23,7 +25,7 @@ class SongService
      */
     public function saveSong(string $name, UploadedFile $musicFile, int $albumId): int
     {
-        $album = $this->albumService->getAlbum($albumId);
+        $album = $this->albumRepository->getById($albumId);
 
         $musicPath = $this->storageService->saveAudio($album->cdn_folder_id, $musicFile);
 

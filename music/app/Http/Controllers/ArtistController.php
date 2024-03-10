@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTransferObjects\AlbumDto;
-use App\DataTransferObjects\ArtistDto;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\JwtException;
 use App\Exceptions\MinioException;
@@ -13,10 +11,8 @@ use App\Mappers\AlbumMapper;
 use App\Mappers\ArtistMapper;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IArtistRepository;
-use App\Repository\Interfaces\IGenreRepository;
-use App\Services\ArtistService;
-use App\Services\TokenService;
-use App\Services\EncodeDecodeService;
+use App\Services\DomainServices\ArtistService;
+use App\Services\JwtServices\TokenService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -36,13 +32,15 @@ class ArtistController extends Controller
      */
     public function show(int $artistId): JsonResponse
     {
-        dd($artistId);
         $artist = $this->artistRepository->getById($artistId);
         $artistDto = $this->artistMapper->mapSingleArtist($artist);
 
         return response()->json($artistDto);
     }
 
+    /**
+     * @throws DataAccessException
+     */
     public function showAlbumsMadeByArtist(int $artistId): JsonResponse
     {
         $albumsMadeByArtist = $this->albumRepository->getAllByArtist($artistId);

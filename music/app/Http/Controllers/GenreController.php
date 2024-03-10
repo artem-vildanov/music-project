@@ -7,9 +7,8 @@ use App\Mappers\AlbumMapper;
 use App\Mappers\GenreMapper;
 use App\Repository\Interfaces\IAlbumRepository;
 use App\Repository\Interfaces\IGenreRepository;
+use App\Services\DomainServices\AlbumService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
-use App\Services\AlbumService;
 
 class GenreController extends Controller
 {
@@ -18,6 +17,7 @@ class GenreController extends Controller
         private readonly IAlbumRepository $albumRepository,
         private readonly GenreMapper $genreMapper,
         private readonly AlbumMapper $albumMapper,
+        private readonly AlbumService $albumService
     ) {}
 
     public function show(int $genreId): JsonResponse

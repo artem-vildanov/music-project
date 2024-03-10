@@ -8,9 +8,9 @@ use App\Facades\AuthFacade;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\SignupRequest;
 use App\Repository\UserRepository;
-use App\Services\TokenService;
-use Illuminate\Http\Request;
+use App\Services\JwtServices\TokenService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller

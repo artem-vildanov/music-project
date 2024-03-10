@@ -1,17 +1,14 @@
 <?php
 
-namespace App\Services;
+namespace App\Services\JwtServices;
 
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\JwtException;
 use App\Exceptions\RedisException;
-use App\Facades\AuthFacade;
-use App\Http\RequestModels\Auth\LoginRequestModel;
 use App\Models\TokenPayloadModel;
 use App\Models\User;
 use App\Repository\Interfaces\IArtistRepository;
 use App\Repository\Interfaces\IUserRepository;
-use Firebase\JWT\ExpiredException;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 

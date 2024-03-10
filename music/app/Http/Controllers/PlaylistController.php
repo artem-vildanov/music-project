@@ -13,9 +13,8 @@ use App\Mappers\SongMapper;
 use App\Repository\Interfaces\IPlaylistRepository;
 use App\Repository\Interfaces\IPlaylistSongsRepository;
 use App\Repository\Interfaces\ISongRepository;
-use App\Services\PlaylistService;
+use App\Services\DomainServices\PlaylistService;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class PlaylistController extends Controller
 {

@@ -6,19 +6,31 @@ use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Exceptions\DataAccessExceptions\SongException;
 use App\Models\Song;
 use App\Repository\Interfaces\ISongRepository;
+use App\Services\CacheServices\SongCacheService;
 
 class SongRepository implements ISongRepository
 {
+    public function __construct(
+        private readonly SongCacheService $songCacheService
+    ) {}
+
     /**
-     * @throws \App\Exceptions\DataAccessExceptions\DataAccessException
+     * @throws DataAccessException
      */
     public function getById(int $songId): Song
     {
+        $song = $this->songCacheService->getSongFromCache($songId);
+        if ($song) {
+            return $song;
+        }
+
         $song = Song::query()->find($songId);
 
         if (!$song) {
             throw SongException::notFound($songId);
         }
+
+        $this->songCacheService->saveSongToCache($song);
 
         return $song;
     }
@@ -44,6 +56,8 @@ class SongRepository implements ISongRepository
 
         $song->save();
 
+        $this->songCacheService->saveSongToCache($song);
+
         return $song->id;
     }
 
@@ -61,6 +75,8 @@ class SongRepository implements ISongRepository
         if (!$song->delete()) {
             throw SongException::failedToDelete($songId);
         }
+
+        $this->songCacheService->deleteSongFromCache($songId);
     }
 
     /**
@@ -79,5 +95,7 @@ class SongRepository implements ISongRepository
         if (!$song->save()) {
             throw SongException::failedToUpdate($songId);
         }
+
+        $this->songCacheService->deleteSongFromCache($songId);
     }
 }

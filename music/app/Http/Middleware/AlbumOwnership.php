@@ -5,8 +5,8 @@ namespace App\Http\Middleware;
 use App\Exceptions\DataAccessExceptions\DataAccessException;
 use App\Facades\AuthFacade;
 use App\Repository\Interfaces\IAlbumRepository;
-use App\Repository\Interfaces\IArtistRepository;
-use App\Services\AlbumService;
+use App\Services\CacheServices\AlbumCacheService;
+use App\Services\DomainServices\AlbumService;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Response;
 class AlbumOwnership
 {
     public function __construct(
-        private readonly AlbumService $albumService
+        private readonly IAlbumRepository $albumRepository
     ) {}
 
     /**
@@ -24,7 +24,7 @@ class AlbumOwnership
     {
         $requestAlbumId = (int)$request->route('albumId');
 
-        $album = $this->albumService->getAlbum($requestAlbumId);
+        $album = $this->albumRepository->getById($requestAlbumId);
 
         $authUser = AuthFacade::getAuthInfo();
 

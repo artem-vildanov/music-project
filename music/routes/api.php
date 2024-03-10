@@ -47,9 +47,6 @@ Route::group(['prefix' => 'artists', 'middleware' => Authenticate::class], funct
 
     Route::group(['prefix' => '{artistId}'], function() {
         Route::get('', [ArtistController::class, 'show']);
-        // Route::get('', function () {
-        //     return response()->json('success');
-        // });
         Route::put('add-to-favourites', [FavouriteArtistsController::class, 'addToFavouriteArtists'])->middleware(CheckArtistIsFavourite::class);
         Route::put('delete-from-favourites', [FavouriteArtistsController::class, 'deleteFromFavouriteArtists']);
 
@@ -59,12 +56,6 @@ Route::group(['prefix' => 'artists', 'middleware' => Authenticate::class], funct
         })->withoutMiddleware([CheckArtistExists::class]);;
     });
 });
-
-Route::group(['prefix' => 'album', 'middleware' => Authenticate::class], function () {
-    Route::get('/{albumId}', [AlbumController::class, 'show']);
-    Route::get('created-by-artist/{artistId}', [ArtistController::class, 'showAlbumsMadeByArtist']);
-});
-
 
 Route::group(['prefix' => 'albums', 'middleware' => Authenticate::class], function () {
     Route::get('created-by-artist/{artistId}', [ArtistController::class, 'showAlbumsMadeByArtist']);
